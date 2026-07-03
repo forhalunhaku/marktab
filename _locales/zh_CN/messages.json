@@ -8,7 +8,7 @@
     "description": "浏览器扩展列表中显示的扩展描述。"
   },
   "searchBookmarksAndFolders": {
-    "message": "搜索书签和文件夹…"
+    "message": "搜索书签、文件夹或输入网址"
   },
   "search": {
     "message": "搜索"
@@ -23,7 +23,7 @@
     "message": "Shift+Enter 搜网页"
   },
   "hintWeb": {
-    "message": "搜网页"
+    "message": "搜索网页"
   },
   "escClose": {
     "message": "Esc 关闭"
@@ -32,7 +32,7 @@
     "message": "关闭"
   },
   "pinned": {
-    "message": "固定书签"
+    "message": "已固定"
   },
   "recent": {
     "message": "最近访问"
@@ -46,6 +46,30 @@
   "settings": {
     "message": "设置"
   },
+  "themeToggle": {
+    "message": "切换主题"
+  },
+  "newTabPage": {
+    "message": "新标签页"
+  },
+  "commonBookmarks": {
+    "message": "常用书签"
+  },
+  "bookmarkStats": {
+    "message": "书签统计"
+  },
+  "productSubtitle": {
+    "message": "书签，触手可及"
+  },
+  "appearance": {
+    "message": "外观"
+  },
+  "hide": {
+    "message": "隐藏"
+  },
+  "show": {
+    "message": "显示"
+  },
   "toggleSidebar": {
     "message": "展开或收起侧边栏"
   },
@@ -53,13 +77,16 @@
     "message": "返回首页"
   },
   "searchInFolder": {
-    "message": "在文件夹内搜索…"
+    "message": "在当前文件夹中搜索"
   },
   "folderTools": {
     "message": "文件夹工具"
   },
   "gridView": {
     "message": "网格视图"
+  },
+  "listView": {
+    "message": "列表视图"
   },
   "sortBookmarks": {
     "message": "排序书签"
@@ -84,7 +111,10 @@
     }
   },
   "thisFolderIsEmpty": {
-    "message": "这个文件夹是空的"
+    "message": "当前文件夹暂无书签"
+  },
+  "folderEmptyDescription": {
+    "message": "你可以从浏览器书签中移动或添加内容"
   },
   "closeSearch": {
     "message": "关闭搜索"
@@ -92,20 +122,26 @@
   "bookmarks": {
     "message": "书签"
   },
+  "bookmarksUnit": {
+    "message": "个书签"
+  },
+  "foldersUnit": {
+    "message": "个文件夹"
+  },
   "startTypingToSearch": {
     "message": "输入内容开始搜索"
   },
   "pinABookmark": {
-    "message": "固定一个书签"
+    "message": "固定常用"
   },
   "fromAnyFolder": {
-    "message": "可从任意文件夹固定"
+    "message": "从任意文件夹固定"
   },
   "importBookmarks": {
     "message": "导入书签"
   },
   "fromBrowser": {
-    "message": "来自浏览器"
+    "message": "从浏览器导入"
   },
   "recentFirst": {
     "message": "最近优先"
@@ -120,7 +156,10 @@
     "message": "整理链接"
   },
   "noRecentBookmarksYet": {
-    "message": "还没有最近访问的书签"
+    "message": "暂无最近访问"
+  },
+  "recentEmptyDescription": {
+    "message": "打开书签后，访问记录会显示在这里"
   },
   "viewAll": {
     "message": "查看全部"

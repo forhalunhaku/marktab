@@ -54,7 +54,7 @@ const migrationChecks = [
   {
     file: 'styles.css',
     forbidden: [
-      { pattern: /--bg-page|--font-display|--accent(?!-color)|--radius-sm|--radius-md|--radius-lg|--shadow-card|--shadow-elevated|--shadow-panel/, message: 'styles.css contains old MarkTab visual tokens.' },
+      { pattern: /--bg-page|--font-display|--shadow-card|--shadow-elevated|--shadow-panel|--green-dark|--green-soft|--green-border/, message: 'styles.css contains old MarkTab visual tokens.' },
       { pattern: /rgba\(\s*0\s*,\s*0\s*,\s*0\s*,\s*0\.(?:0[1-9]|[1-9])\s*\)/, message: 'styles.css contains pure black alpha shadows or overlays.' }
     ]
   },
@@ -211,8 +211,10 @@ for (const { file, forbidden } of migrationChecks) {
 
 const styles = await readText('styles.css');
 const backdropMatches = [...styles.matchAll(/(?:-webkit-)?backdrop-filter\s*:/g)];
-if (backdropMatches.length !== 2 || !/\.search-panel-overlay\s*\{[\s\S]*backdrop-filter\s*:\s*blur\(4px\)[\s\S]*-webkit-backdrop-filter\s*:\s*blur\(4px\)/.test(styles)) {
-  errors.push('styles.css should only keep backdrop-filter on the Spotlight search overlay.');
+const searchBackdropIsValid = /\.search-panel-overlay\s*\{[\s\S]*?backdrop-filter\s*:\s*blur\(4px\)[\s\S]*?-webkit-backdrop-filter\s*:\s*blur\(4px\)/.test(styles);
+const sidebarBackdropIsValid = /\.home-sidebar-panel\s*\{[\s\S]*?backdrop-filter\s*:\s*blur\(24px\)[\s\S]*?-webkit-backdrop-filter\s*:\s*blur\(24px\)/.test(styles);
+if (backdropMatches.length !== 4 || !searchBackdropIsValid || !sidebarBackdropIsValid) {
+  errors.push('styles.css should only keep backdrop-filter on the search overlay and fixed home sidebar.');
 }
 
 const storeSubmission = await readText('CHROME_STORE_SUBMISSION.md');

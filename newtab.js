@@ -5,9 +5,9 @@
 
 // ─── Theme Registry ──────────────────────────────────────────
 const THEMES = [
-  { id: 'light',  name: 'Light',  desc: 'Warm paper' },
-  { id: 'dark',   name: 'Dark',   desc: 'Soft charcoal' },
-  { id: 'system', name: 'System', desc: 'Follows OS' }
+  { id: 'light',  name: 'Light',  desc: 'Soft daylight workspace' },
+  { id: 'dark',   name: 'Dark',   desc: 'Graphite focus mode' },
+  { id: 'system', name: 'System', desc: 'Follow your device' }
 ];
 
 // ─── Defaults ────────────────────────────────────────────────
@@ -28,37 +28,57 @@ let flatFolders = [];
 let uncategorizedBookmarks = [];
 
 const FALLBACK_MESSAGES = {
-  settingsSaved: 'Settings saved',
-  loadingBookmarks: 'Loading bookmarks…',
-  untitled: 'Untitled',
-  pinABookmark: 'Pin a bookmark',
-  fromAnyFolder: 'from any folder',
-  importBookmarks: 'Import bookmarks',
-  fromBrowser: 'from browser',
-  recentFirst: 'Recent first',
-  quickAccess: 'quick access',
-  browseFolders: 'Browse folders',
-  organizeLinks: 'organize links',
-  noRecentBookmarksYet: 'No recent bookmarks yet',
-  viewAll: 'View all',
-  recent: 'Recent',
-  yesterday: 'Yesterday',
-  home: 'Home',
-  folders: 'Folders',
-  bookmarkCount: '$1 bookmark',
-  bookmarkCountPlural: '$1 bookmarks',
-  searchInFolderNamed: 'Search in $1…',
-  pin: 'Pin',
-  unpin: 'Unpin',
-  pinned: 'Pinned',
-  unpinned: 'Unpinned',
-  startTypingToSearch: 'Start typing to search',
-  searchWebFor: 'Search web for $1',
-  searchFailed: 'Search failed',
-  theme: 'Theme: $1',
-  themeLight: 'Light',
-  themeDark: 'Dark',
-  themeSystem: 'System',
+  searchBookmarksAndFolders: '搜索书签、文件夹或输入网址',
+  search: '搜索',
+  hintOpen: '打开',
+  hintWeb: '搜索网页',
+  hintClose: '关闭',
+  settingsSaved: '设置已保存',
+  loadingBookmarks: '正在加载书签…',
+  untitled: '未命名',
+  pinABookmark: '固定常用',
+  fromAnyFolder: '从任意文件夹固定',
+  importBookmarks: '导入书签',
+  fromBrowser: '从浏览器导入',
+  recentFirst: '最近优先',
+  quickAccess: '快速访问',
+  browseFolders: '浏览文件夹',
+  organizeLinks: '整理链接',
+  noRecentBookmarksYet: '暂无最近访问',
+  recentEmptyDescription: '打开书签后，访问记录会显示在这里',
+  viewAll: '查看全部',
+  recent: '最近访问',
+  yesterday: '昨天',
+  home: '首页',
+  folders: '文件夹',
+  bookmarkCount: '$1 个书签',
+  bookmarkCountPlural: '$1 个书签',
+  searchInFolderNamed: '在 $1 中搜索…',
+  searchInFolder: '在当前文件夹中搜索',
+  listView: '列表视图',
+  thisFolderIsEmpty: '当前文件夹暂无书签',
+  folderEmptyDescription: '你可以从浏览器书签中移动或添加内容',
+  pin: '固定',
+  unpin: '取消固定',
+  pinned: '已固定',
+  unpinned: '已取消固定',
+  startTypingToSearch: '输入内容开始搜索',
+  searchWebFor: '搜索网页：$1',
+  searchFailed: '搜索失败',
+  theme: '主题：$1',
+  themeLight: '浅色',
+  themeDark: '深色',
+  themeSystem: '跟随系统',
+  themeToggle: '切换主题',
+  newTabPage: '新标签页',
+  commonBookmarks: '常用书签',
+  bookmarkStats: '书签统计',
+  productSubtitle: '书签，触手可及',
+  bookmarksUnit: '个书签',
+  foldersUnit: '个文件夹',
+  appearance: '外观',
+  hide: '隐藏',
+  show: '显示',
   greetingLate: '夜深了',
   greetingMorning: '早上好',
   greetingNoon: '中午好',
@@ -71,27 +91,44 @@ const $ = id => document.getElementById(id);
 const el = {
   homeView:            $('homeView'),
   folderView:          $('folderView'),
-  settingsView:        $('settingsView'),
   homeClock:           $('homeClock'),
   homeDate:            $('homeDate'),
   homeSearchInput:     $('homeSearchInput'),
   homeSearchShortcut:  $('homeSearchShortcut'),
   homeGreeting:        $('homeGreeting'),
+  homeHero:            $('homeHero'),
   homeSections:        $('homeSections'),
   homePinnedGrid:      $('homePinnedGrid'),
   homeRecentGrid:      $('homeRecentGrid'),
   homeFolderPills:     $('homeFolderPills'),
   homeLoading:         $('homeLoading'),
   homeFab:             $('homeFab'),
+  homeSidebarFolders:  $('homeSidebarFolders'),
+  homeSidebarFolderTotal: $('homeSidebarFolderTotal'),
+  homeStatsBookmarks:  $('homeStatsBookmarks'),
+  homeStatsFolders:    $('homeStatsFolders'),
+  homeSidebarSettingsBtn: $('homeSidebarSettingsBtn'),
+  homeSidebarThemeBtn: $('homeSidebarThemeBtn'),
   folderSidebar:       $('folderSidebar'),
   sidebarNav:          $('sidebarNav'),
   sidebarHomeBtn:      $('sidebarHomeBtn'),
+  folderSidebarHomeBtn: $('folderSidebarHomeBtn'),
+  folderSidebarSettingsBtn: $('folderSidebarSettingsBtn'),
+  folderSidebarThemeBtn: $('folderSidebarThemeBtn'),
+  folderSidebarFolderTotal: $('folderSidebarFolderTotal'),
+  folderStatsBookmarks: $('folderStatsBookmarks'),
+  folderStatsFolders: $('folderStatsFolders'),
   folderSearchInput:   $('folderSearchInput'),
   folderTitle:         $('folderTitle'),
   folderCount:         $('folderCount'),
   folderContent:       $('folderContent'),
   folderBookmarksGrid: $('folderBookmarksGrid'),
   folderEmpty:         $('folderEmpty'),
+  settingsPanelOverlay: $('settingsPanelOverlay'),
+  settingsPanel:       $('settingsPanel'),
+  settingsPanelClose:  $('settingsPanelClose'),
+  themeOptions:        $('themeOptions'),
+  settingsFolderList:  $('settingsFolderList'),
   searchPanel:         $('searchPanel'),
   searchPanelOverlay:  $('searchPanelOverlay'),
   searchPanelInput:    $('searchPanelInput'),
@@ -210,8 +247,8 @@ function updateTime() {
   const m = String(now.getMinutes()).padStart(2, '0');
   el.homeClock.textContent = `${h}:${m}`;
   el.homeDate.textContent = now.toLocaleDateString(getUiLocale(), {
-    weekday: 'long', month: 'long', day: 'numeric'
-  });
+    month: 'long', day: 'numeric', weekday: 'long'
+  }).replace(/,\s*/g, ' ');
   // Greeting
   const hour = now.getHours();
   let greeting;
@@ -454,9 +491,33 @@ function showMockData() {
 
 // ─── Home View ──────────────────────────────────────────────
 function renderHome() {
+  renderHomeSidebar();
   renderHomePinned();
   renderHomeRecent();
   renderHomeFolders();
+}
+
+function renderHomeSidebar() {
+  const folders = getUserFolders(false)
+    .slice()
+    .sort((a, b) => (b.bookmarkCount - a.bookmarkCount) || a.title.localeCompare(b.title, getUiLocale()));
+  el.homeSidebarFolders.innerHTML = folders.map(folder => `
+    <button class="home-sidebar-folder" type="button" data-folder-id="${escapeHtml(folder.id)}" title="${escapeHtml(folder.pathString)}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" aria-hidden="true">
+        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+      </svg>
+      <span class="home-sidebar-folder-name">${escapeHtml(folder.title)}</span>
+      <span class="home-sidebar-folder-count">${folder.bookmarkCount}</span>
+    </button>
+  `).join('');
+
+  el.homeSidebarFolderTotal.textContent = String(getUserFolders(false).length);
+  el.homeStatsBookmarks.textContent = String(allBookmarks.length);
+  el.homeStatsFolders.textContent = String(getUserFolders(false).length);
+
+  el.homeSidebarFolders.querySelectorAll('.home-sidebar-folder').forEach(btn => {
+    btn.addEventListener('click', () => openFolderView(btn.dataset.folderId));
+  });
 }
 
 function renderHomePinned() {
@@ -466,28 +527,22 @@ function renderHomePinned() {
   const contentStateClass = pinned.length > 1 ? 'has-multiple-pins' : pinned.length > 0 ? 'has-pinned-content' : 'is-empty';
   el.homePinnedGrid.className = `home-card-grid home-pinned-grid ${pinnedCountClass} ${contentStateClass}`;
 
-  // Keep the home rhythm stable: pinned areas up to 4 items stay as one 4-column row.
-  if (pinned.length < 4) {
+  if (pinned.length === 0) {
     const placeholders = [
-      [msg('pinABookmark'), msg('fromAnyFolder')],
-      [msg('importBookmarks'), msg('fromBrowser')],
-      [msg('recentFirst'), msg('quickAccess')],
-      [msg('browseFolders'), msg('organizeLinks')]
+      [msg('pinABookmark'), msg('fromAnyFolder'), '<path d="M6 4.75A1.75 1.75 0 0 1 7.75 3h8.5A1.75 1.75 0 0 1 18 4.75V21l-6-3.7L6 21z"></path>'],
+      [msg('importBookmarks'), msg('fromBrowser'), '<path d="M12 3v11"></path><path d="m8 10 4 4 4-4"></path><path d="M5 14v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"></path>'],
+      [msg('recentFirst'), msg('quickAccess'), '<circle cx="12" cy="12" r="8.5"></circle><path d="M12 7.5V12l3 2"></path>'],
+      [msg('browseFolders'), msg('organizeLinks'), '<path d="M3 7.5A2.5 2.5 0 0 1 5.5 5H10l2 2h6.5A2.5 2.5 0 0 1 21 9.5v7A2.5 2.5 0 0 1 18.5 19h-13A2.5 2.5 0 0 1 3 16.5z"></path>']
     ];
-    const placeholder = ([title, meta], variant = '') => `
-      <div class="home-card-placeholder empty-pin-card ${variant}">
+    const placeholder = ([title, meta, icon]) => `
+      <div class="home-card-placeholder empty-pin-card">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-          <path d="M12 17v5"></path><path d="M5 17h14"></path>
-          <path d="M15 3.6 20.4 9l-3 3 1.1 4H5.5l1.1-4-3-3L9 3.6"></path>
+          ${icon}
         </svg>
         <span class="empty-pin-title">${title}</span>
         <span class="empty-pin-meta">${meta}</span>
       </div>`;
-    const fillCount = 4 - pinned.length;
-    for (let i = 0; i < fillCount; i++) {
-      const variant = pinned.length === 0 ? '' : i === 0 ? 'is-primary' : 'is-secondary';
-      html += placeholder(placeholders[pinned.length + i], variant);
-    }
+    html = placeholders.map(item => placeholder(item)).join('');
   }
   el.homePinnedGrid.innerHTML = html;
   afterRenderCards(el.homePinnedGrid);
@@ -498,24 +553,29 @@ function renderHomeRecent() {
   const allRecent = getRecentBookmarks(settings.homeRecentCount);
   if (!allRecent.length) {
     el.homeRecentGrid.className = 'home-recent-list';
-    el.homeRecentGrid.innerHTML = `<div class="recent-empty">${escapeHtml(msg('noRecentBookmarksYet'))}</div>`;
+    el.homeRecentGrid.innerHTML = `
+      <div class="recent-empty">
+        <span class="recent-empty-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="12" cy="12" r="8.5"></circle><path d="M12 7.5V12l3 2"></path>
+          </svg>
+        </span>
+        <span class="recent-empty-copy">
+          <strong>${escapeHtml(msg('noRecentBookmarksYet'))}</strong>
+          <span>${escapeHtml(msg('recentEmptyDescription'))}</span>
+        </span>
+      </div>`;
     const existing = el.homeRecentGrid.closest('.home-section')?.querySelector('.home-recent-view-all');
     if (existing) existing.remove();
     return;
   }
-  const showCount = Math.min(allRecent.length, 4);
+  const showCount = Math.min(allRecent.length, 6);
   const recent = allRecent.slice(0, showCount);
 
-  // Update "View all" button on the section label
   el.homeRecentGrid.className = 'home-recent-list';
-  const recentGroups = [];
-  for (let i = 0; i < recent.length; i += 2) {
-    recentGroups.push(recent.slice(i, i + 2));
-  }
-  el.homeRecentGrid.innerHTML = recentGroups.map(createRecentGroup).join('');
+  el.homeRecentGrid.innerHTML = `<div class="home-recent-surface">${recent.map(createRecentRow).join('')}</div>`;
   afterRenderRecent();
 
-  // Manage "View all" button
   const section = el.homeRecentGrid.closest('.home-section');
   const header = section?.querySelector('.section-header');
   if (!header) return;
@@ -534,10 +594,6 @@ function renderHomeRecent() {
   } else if (existing) {
     existing.remove();
   }
-}
-
-function createRecentGroup(bookmarks) {
-  return `<div class="home-recent-card">${bookmarks.map(createRecentRow).join('')}</div>`;
 }
 
 function createRecentRow(bookmark) {
@@ -606,8 +662,7 @@ function renderHomeFolders() {
     .slice()
     .sort((a, b) => (b.bookmarkCount - a.bookmarkCount) || a.title.localeCompare(b.title, getUiLocale()));
   el.homeFolderPills.innerHTML = folders.map(f => {
-    const parentPath = f.displayPath.slice(0, -1).join(' / ');
-    const meta = parentPath || bookmarkCountLabel(f.bookmarkCount);
+    const meta = bookmarkCountLabel(f.bookmarkCount);
     return `
     <button class="folder-pill" data-folder-id="${escapeHtml(f.id)}" title="${escapeHtml(f.pathString)}">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="16" height="16" aria-hidden="true">
@@ -617,7 +672,6 @@ function renderHomeFolders() {
         <span class="folder-pill-title">${escapeHtml(f.title)}</span>
         <span class="folder-pill-meta">${escapeHtml(meta)}</span>
       </span>
-      <span class="folder-pill-count">${f.bookmarkCount}</span>
     </button>
   `;
   }).join('');
@@ -640,8 +694,10 @@ function createHomeCard(bookmark) {
         ${faviconUrl ? `<img class="home-card-favicon-img" src="${escapeHtml(faviconUrl)}" alt="" loading="lazy" width="24" height="24">` : ''}
         <span class="home-card-favicon-letter">${escapeHtml(initial)}</span>
       </div>
-      <span class="home-card-title">${escapeHtml(title)}</span>
-      <span class="home-card-domain">${escapeHtml(domain)}</span>
+      <div class="home-card-copy">
+        <span class="home-card-title">${escapeHtml(title)}</span>
+        <span class="home-card-domain">${escapeHtml(domain)}</span>
+      </div>
     </a>
   `;
 }
@@ -676,40 +732,28 @@ function openFolderView(folderId) {
 function renderSidebar() {
   const folders = getUserFolders(false);
 
-  let html = `
-    <button class="sidebar-nav-item" data-action="home" title="${escapeHtml(msg('home'))}">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="18" height="18" aria-hidden="true">
-        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-      </svg>
-      <span>${escapeHtml(msg('home'))}</span>
-    </button>
-    <button class="sidebar-nav-item" data-action="recent" title="${escapeHtml(msg('recent'))}">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="18" height="18" aria-hidden="true">
-        <circle cx="12" cy="12" r="10"></circle>
-        <polyline points="12 6 12 12 16 14"></polyline>
-      </svg>
-      <span>${escapeHtml(msg('recent'))}</span>
-    </button>
-  `;
+  el.sidebarNav.innerHTML = folders.map(createSidebarFolderItem).join('');
+  el.folderSidebarFolderTotal.textContent = String(folders.length);
+  el.folderStatsBookmarks.textContent = String(allBookmarks.length);
+  el.folderStatsFolders.textContent = String(folders.length);
 
-  html += `<div class="sidebar-nav-label">${escapeHtml(msg('folders'))}</div>`;
-  folders.forEach(f => {
-    html += createSidebarFolderItem(f);
+  document.querySelectorAll('[data-folder-nav]').forEach(item => {
+    item.classList.toggle('active', item.dataset.folderNav === 'recent' && activeFolderId === '__recent');
   });
 
-  el.sidebarNav.innerHTML = html;
+  document.querySelectorAll('[data-folder-view-mode]').forEach(button => {
+    button.addEventListener('click', () => {
+      const listMode = button.dataset.folderViewMode === 'list';
+      el.folderBookmarksGrid.classList.toggle('list-view', listMode);
+      document.querySelectorAll('[data-folder-view-mode]').forEach(item => {
+        item.classList.toggle('active', item === button);
+      });
+    });
+  });
 
   el.sidebarNav.querySelectorAll('.sidebar-nav-item').forEach(item => {
     item.addEventListener('click', () => {
-      if (item.dataset.action === 'home') {
-        returnHome();
-      } else if (item.dataset.action === 'recent') {
-        // show recent bookmarks in folder view
-        const recent = getRecentBookmarks(20);
-        activeFolderId = '__recent';
-        renderFolderContentForBookmarks(recent, msg('recent'));
-        renderSidebar();
-      } else if (item.dataset.folderId) {
+      if (item.dataset.folderId) {
         openFolderView(item.dataset.folderId);
       }
     });
@@ -720,7 +764,7 @@ function createSidebarFolderItem(folder) {
   const isActive = activeFolderId === folder.id;
   const isHidden = !isFolderVisible(folder.id);
   return `
-    <button class="sidebar-nav-item ${isActive ? 'active' : ''} ${isHidden ? 'hidden' : ''}" data-folder-id="${escapeHtml(folder.id)}" title="${escapeHtml(folder.title)}">
+    <button class="home-sidebar-folder sidebar-nav-item ${isActive ? 'active' : ''} ${isHidden ? 'hidden' : ''}" data-folder-id="${escapeHtml(folder.id)}" title="${escapeHtml(folder.title)}">
       <svg class="sidebar-folder-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="18" height="18" aria-hidden="true">
         <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
       </svg>
@@ -739,7 +783,7 @@ function renderFolderContent(folderId) {
 function renderFolderContentForBookmarks(bookmarks, title, breadcrumb = '') {
   el.folderTitle.textContent = title;
   el.folderCount.textContent = bookmarkCountLabel(bookmarks.length);
-  el.folderSearchInput.placeholder = msg('searchInFolderNamed', title);
+  el.folderSearchInput.placeholder = msg('searchInFolder');
 
   if (!bookmarks.length) {
     el.folderBookmarksGrid.innerHTML = '';
@@ -834,7 +878,7 @@ function filterFolderBookmarks(query) {
     (b.url && b.url.toLowerCase().includes(q))
   ) : folder.bookmarks;
   renderFolderContentForBookmarks(bookmarks, folder.title);
-  if (!q) el.folderSearchInput.placeholder = msg('searchInFolderNamed', folder.title);
+  if (!q) el.folderSearchInput.placeholder = msg('searchInFolder');
 }
 
 // ─── Search Panel (Spotlight Style) ─────────────────────────
@@ -1000,6 +1044,61 @@ async function performWebSearch(query) {
   }
 }
 
+function renderSettingsPanel() {
+  const currentTheme = settings.theme;
+  el.themeOptions.innerHTML = THEMES.map(theme => `
+    <button class="theme-option ${theme.id === currentTheme ? 'active' : ''}" type="button" data-theme-id="${escapeHtml(theme.id)}">
+      <span class="theme-option-name">${escapeHtml(msg(`theme${theme.name}`) || theme.name)}</span>
+      <span class="theme-option-desc">${escapeHtml(theme.desc)}</span>
+    </button>
+  `).join('');
+
+  el.settingsFolderList.innerHTML = getUserFolders(true)
+    .slice()
+    .sort((a, b) => a.title.localeCompare(b.title, getUiLocale()))
+    .map(folder => {
+      const visible = isFolderVisible(folder.id);
+      return `
+        <div class="settings-folder-item">
+          <span class="settings-folder-name">${escapeHtml(folder.title)}</span>
+          <span class="settings-folder-count">${folder.bookmarkCount}</span>
+          <button class="settings-folder-toggle" type="button" data-folder-id="${escapeHtml(folder.id)}">${escapeHtml(msg(visible ? 'hide' : 'show'))}</button>
+        </div>
+      `;
+    }).join('');
+
+  el.themeOptions.querySelectorAll('.theme-option').forEach(btn => {
+    btn.addEventListener('click', () => {
+      applyTheme(btn.dataset.themeId);
+      saveSettingsSilent();
+      renderSettingsPanel();
+    });
+  });
+
+  el.settingsFolderList.querySelectorAll('.settings-folder-toggle').forEach(btn => {
+    btn.addEventListener('click', () => {
+      toggleFolderVisibility(btn.dataset.folderId);
+      renderHome();
+      renderSidebar();
+      renderSettingsPanel();
+      if (activeFolderId && !isFolderVisible(activeFolderId)) {
+        returnHome();
+      }
+    });
+  });
+}
+
+function openSettingsPanel() {
+  renderSettingsPanel();
+  el.settingsPanelOverlay.style.display = 'flex';
+  document.body.classList.add('search-open');
+}
+
+function closeSettingsPanel() {
+  el.settingsPanelOverlay.style.display = 'none';
+  document.body.classList.remove('search-open');
+}
+
 // ─── Theme Cycle ────────────────────────────────────────────
 function cycleTheme() {
   const themeIds = THEMES.map(t => t.id);
@@ -1021,7 +1120,7 @@ function returnHome() {
 function showView(view) {
   el.homeView.style.display = view === 'home' ? '' : 'none';
   el.folderView.style.display = view === 'folder' ? '' : 'none';
-  el.homeFab.style.display = view === 'home' ? 'flex' : 'none';
+  el.homeFab.style.display = window.innerWidth <= 768 && view === 'home' ? 'flex' : 'none';
 }
 
 // ─── Event Setup ────────────────────────────────────────────
@@ -1050,9 +1149,43 @@ function setupEvents() {
 
   // Home FAB — cycle theme
   el.homeFab.addEventListener('click', cycleTheme);
+  el.homeSidebarThemeBtn.addEventListener('click', cycleTheme);
+  el.folderSidebarThemeBtn.addEventListener('click', cycleTheme);
+  el.homeSidebarSettingsBtn.addEventListener('click', openSettingsPanel);
+  el.folderSidebarSettingsBtn.addEventListener('click', openSettingsPanel);
 
   // Sidebar home button
   el.sidebarHomeBtn.addEventListener('click', returnHome);
+  el.folderSidebarHomeBtn.addEventListener('click', returnHome);
+
+  document.querySelectorAll('[data-home-nav]').forEach(item => {
+    item.addEventListener('click', () => {
+      const target = item.dataset.homeNav;
+      const map = {
+        top: el.homeHero,
+        pinned: $('homePinnedSection'),
+        recent: $('homeRecentSection')
+      };
+      document.querySelectorAll('[data-home-nav]').forEach(btn => btn.classList.toggle('active', btn === item));
+      map[target]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
+
+  document.querySelectorAll('[data-folder-nav]').forEach(item => {
+    item.addEventListener('click', () => {
+      const target = item.dataset.folderNav;
+      if (target === 'recent') {
+        activeFolderId = '__recent';
+        renderFolderContentForBookmarks(getRecentBookmarks(20), msg('recent'));
+        renderSidebar();
+        return;
+      }
+      returnHome();
+      if (target === 'pinned') {
+        requestAnimationFrame(() => $('homePinnedSection')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+      }
+    });
+  });
 
   // Sidebar toggle (mobile)
   const sidebarToggle = document.getElementById('sidebarToggle');
@@ -1072,6 +1205,12 @@ function setupEvents() {
   el.searchPanelInput.addEventListener('input', debounce(handleSearchInput, 60));
   el.searchPanelClose.addEventListener('click', closeSearch);
   el.searchPanelOverlay.addEventListener('click', closeSearch);
+  el.settingsPanelClose.addEventListener('click', closeSettingsPanel);
+  el.settingsPanelOverlay.addEventListener('click', e => {
+    if (e.target === el.settingsPanelOverlay) closeSettingsPanel();
+  });
+  el.settingsPanel.addEventListener('click', e => e.stopPropagation());
+  el.searchPanel.addEventListener('click', e => e.stopPropagation());
 
   // Search result clicks (delegated)
   el.searchPanelResults.addEventListener('click', e => {
@@ -1085,6 +1224,7 @@ function setupEvents() {
 function setupKeyboard() {
   document.addEventListener('keydown', e => {
     const isSearchOpen = el.searchPanel.style.display === 'flex';
+    const isSettingsOpen = el.settingsPanelOverlay.style.display === 'flex';
 
     // / or Cmd+K to open search
     if ((e.key === '/' && !isInputFocused()) ||
@@ -1092,6 +1232,12 @@ function setupKeyboard() {
       e.preventDefault();
       if (isSearchOpen) closeSearch();
       else openSearch();
+      return;
+    }
+
+    if (isSettingsOpen && e.key === 'Escape') {
+      e.preventDefault();
+      closeSettingsPanel();
       return;
     }
 
@@ -1140,6 +1286,7 @@ async function init() {
   setupEvents();
   setupKeyboard();
   await loadBookmarks();
+  showView('home');
 }
 
 // Boot

@@ -8,7 +8,7 @@
     "description": "Extension description shown in browser extension listings."
   },
   "searchBookmarksAndFolders": {
-    "message": "Search bookmarks and folders…"
+    "message": "Search bookmarks, folders, or enter a URL"
   },
   "search": {
     "message": "Search"
@@ -46,6 +46,30 @@
   "settings": {
     "message": "Settings"
   },
+  "themeToggle": {
+    "message": "Toggle theme"
+  },
+  "newTabPage": {
+    "message": "New tab"
+  },
+  "commonBookmarks": {
+    "message": "Common bookmarks"
+  },
+  "bookmarkStats": {
+    "message": "Bookmark stats"
+  },
+  "productSubtitle": {
+    "message": "Bookmarks, within reach."
+  },
+  "appearance": {
+    "message": "Appearance"
+  },
+  "hide": {
+    "message": "Hide"
+  },
+  "show": {
+    "message": "Show"
+  },
   "toggleSidebar": {
     "message": "Toggle sidebar"
   },
@@ -53,13 +77,16 @@
     "message": "Back to home"
   },
   "searchInFolder": {
-    "message": "Search in folder…"
+    "message": "Search in the current folder"
   },
   "folderTools": {
     "message": "Folder tools"
   },
   "gridView": {
     "message": "Grid view"
+  },
+  "listView": {
+    "message": "List view"
   },
   "sortBookmarks": {
     "message": "Sort bookmarks"
@@ -84,13 +111,22 @@
     }
   },
   "thisFolderIsEmpty": {
-    "message": "This folder is empty"
+    "message": "No bookmarks in this folder"
+  },
+  "folderEmptyDescription": {
+    "message": "Move or add items from your browser bookmarks"
   },
   "closeSearch": {
     "message": "Close search"
   },
   "bookmarks": {
     "message": "Bookmarks"
+  },
+  "bookmarksUnit": {
+    "message": "bookmarks"
+  },
+  "foldersUnit": {
+    "message": "folders"
   },
   "startTypingToSearch": {
     "message": "Start typing to search"
@@ -121,6 +157,9 @@
   },
   "noRecentBookmarksYet": {
     "message": "No recent bookmarks yet"
+  },
+  "recentEmptyDescription": {
+    "message": "Open a bookmark and your visit history will appear here"
   },
   "viewAll": {
     "message": "View all"
