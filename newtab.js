@@ -29,7 +29,7 @@ let uncategorizedBookmarks = [];
 
 const FALLBACK_MESSAGES = {
   settingsSaved: 'Settings saved',
-  loadingBookmarks: 'Loading bookmarks...',
+  loadingBookmarks: 'Loading bookmarks…',
   untitled: 'Untitled',
   pinABookmark: 'Pin a bookmark',
   fromAnyFolder: 'from any folder',
@@ -47,7 +47,7 @@ const FALLBACK_MESSAGES = {
   folders: 'Folders',
   bookmarkCount: '$1 bookmark',
   bookmarkCountPlural: '$1 bookmarks',
-  searchInFolderNamed: 'Search in $1...',
+  searchInFolderNamed: 'Search in $1…',
   pin: 'Pin',
   unpin: 'Unpin',
   pinned: 'Pinned',
@@ -70,6 +70,7 @@ const el = {
   homeClock:           $('homeClock'),
   homeDate:            $('homeDate'),
   homeSearchInput:     $('homeSearchInput'),
+  homeSearchShortcut:  $('homeSearchShortcut'),
   homeSections:        $('homeSections'),
   homePinnedGrid:      $('homePinnedGrid'),
   homeRecentGrid:      $('homeRecentGrid'),
@@ -140,6 +141,11 @@ function getUiLocale() {
     ? chrome.i18n.getUILanguage()
     : navigator.language;
   return language || 'en';
+}
+
+function getShortcutHint() {
+  const platform = navigator.userAgentData?.platform || navigator.platform || navigator.userAgent || '';
+  return /\b(Mac|iPhone|iPad|iPod)\b/.test(platform) ? '⌘ K' : 'Ctrl K';
 }
 
 function msg(key, substitutions = []) {
@@ -441,7 +447,9 @@ function renderHome() {
 function renderHomePinned() {
   const pinned = getPinnedBookmarks();
   let html = pinned.map(b => createHomeCard(b)).join('');
-  el.homePinnedGrid.className = `home-card-grid home-pinned-grid pinned-count-${Math.min(pinned.length, 8)}`;
+  const pinnedCountClass = `pinned-count-${Math.min(pinned.length, 8)}`;
+  const contentStateClass = pinned.length > 1 ? 'has-multiple-pins' : pinned.length > 0 ? 'has-pinned-content' : 'is-empty';
+  el.homePinnedGrid.className = `home-card-grid home-pinned-grid ${pinnedCountClass} ${contentStateClass}`;
 
   // Keep the home rhythm stable: pinned areas up to 4 items stay as one 4-column row.
   if (pinned.length < 4) {
@@ -451,9 +459,9 @@ function renderHomePinned() {
       [msg('recentFirst'), msg('quickAccess')],
       [msg('browseFolders'), msg('organizeLinks')]
     ];
-    const placeholder = ([title, meta]) => `
-      <div class="home-card-placeholder empty-pin-card">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+    const placeholder = ([title, meta], variant = '') => `
+      <div class="home-card-placeholder empty-pin-card ${variant}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
           <path d="M12 17v5"></path><path d="M5 17h14"></path>
           <path d="M15 3.6 20.4 9l-3 3 1.1 4H5.5l1.1-4-3-3L9 3.6"></path>
         </svg>
@@ -462,7 +470,8 @@ function renderHomePinned() {
       </div>`;
     const fillCount = 4 - pinned.length;
     for (let i = 0; i < fillCount; i++) {
-      html += placeholder(placeholders[pinned.length + i]);
+      const variant = pinned.length === 0 ? '' : i === 0 ? 'is-primary' : 'is-secondary';
+      html += placeholder(placeholders[pinned.length + i], variant);
     }
   }
   el.homePinnedGrid.innerHTML = html;
@@ -525,7 +534,7 @@ function createRecentRow(bookmark) {
   return `
     <a class="home-recent-item" href="${escapeHtml(bookmark.url)}" data-url="${escapeHtml(bookmark.url)}" title="${escapeHtml(title)}">
       <div class="home-recent-favicon">
-        ${faviconUrl ? `<img class="home-recent-favicon-img" src="${escapeHtml(faviconUrl)}" alt="" loading="lazy">` : ''}
+        ${faviconUrl ? `<img class="home-recent-favicon-img" src="${escapeHtml(faviconUrl)}" alt="" loading="lazy" width="16" height="16">` : ''}
         <span class="home-recent-favicon-letter">${escapeHtml(initial)}</span>
       </div>
       <div class="home-recent-item-content">
@@ -578,16 +587,25 @@ function openFolderViewForBookmarks(bookmarks, title) {
 }
 
 function renderHomeFolders() {
-  const folders = getUserFolders(false);
-  el.homeFolderPills.innerHTML = folders.map(f => `
-    <button class="folder-pill" data-folder-id="${escapeHtml(f.id)}">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="16" height="16">
+  const folders = getUserFolders(false)
+    .slice()
+    .sort((a, b) => (b.bookmarkCount - a.bookmarkCount) || a.title.localeCompare(b.title, getUiLocale()));
+  el.homeFolderPills.innerHTML = folders.map(f => {
+    const parentPath = f.displayPath.slice(0, -1).join(' / ');
+    const meta = parentPath || bookmarkCountLabel(f.bookmarkCount);
+    return `
+    <button class="folder-pill" data-folder-id="${escapeHtml(f.id)}" title="${escapeHtml(f.pathString)}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="16" height="16" aria-hidden="true">
         <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
       </svg>
-      <span>${escapeHtml(f.title)}</span>
+      <span class="folder-pill-body">
+        <span class="folder-pill-title">${escapeHtml(f.title)}</span>
+        <span class="folder-pill-meta">${escapeHtml(meta)}</span>
+      </span>
       <span class="folder-pill-count">${f.bookmarkCount}</span>
     </button>
-  `).join('');
+  `;
+  }).join('');
   el.homeFolderPills.querySelectorAll('.folder-pill').forEach(btn => {
     btn.addEventListener('click', () => {
       openFolderView(btn.dataset.folderId);
@@ -604,7 +622,7 @@ function createHomeCard(bookmark) {
   return `
     <a class="home-card" href="${escapeHtml(bookmark.url)}" data-url="${escapeHtml(bookmark.url)}" title="${escapeHtml(title)}">
       <div class="home-card-favicon">
-        ${faviconUrl ? `<img class="home-card-favicon-img" src="${escapeHtml(faviconUrl)}" alt="" loading="lazy">` : ''}
+        ${faviconUrl ? `<img class="home-card-favicon-img" src="${escapeHtml(faviconUrl)}" alt="" loading="lazy" width="24" height="24">` : ''}
         <span class="home-card-favicon-letter">${escapeHtml(initial)}</span>
       </div>
       <span class="home-card-title">${escapeHtml(title)}</span>
@@ -645,13 +663,13 @@ function renderSidebar() {
 
   let html = `
     <button class="sidebar-nav-item" data-action="home">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="18" height="18">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="18" height="18" aria-hidden="true">
         <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
       </svg>
       <span>${escapeHtml(msg('home'))}</span>
     </button>
     <button class="sidebar-nav-item" data-action="recent">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="18" height="18">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="18" height="18" aria-hidden="true">
         <circle cx="12" cy="12" r="10"></circle>
         <polyline points="12 6 12 12 16 14"></polyline>
       </svg>
@@ -688,7 +706,7 @@ function createSidebarFolderItem(folder) {
   const isHidden = !isFolderVisible(folder.id);
   return `
     <button class="sidebar-nav-item ${isActive ? 'active' : ''} ${isHidden ? 'hidden' : ''}" data-folder-id="${escapeHtml(folder.id)}" title="${escapeHtml(folder.title)}">
-      <svg class="sidebar-folder-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="18" height="18">
+      <svg class="sidebar-folder-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="18" height="18" aria-hidden="true">
         <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
       </svg>
       <span class="sidebar-folder-name">${escapeHtml(folder.title)}</span>
@@ -727,14 +745,14 @@ function createFolderCard(bookmark) {
   return `
     <div class="folder-card" data-url="${escapeHtml(bookmark.url)}">
       <button class="folder-card-pin ${pinned ? 'pinned' : ''}" data-url="${escapeHtml(bookmark.url)}" aria-label="${pinned ? msg('unpin') : msg('pin')}">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="14" height="14">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="14" height="14" aria-hidden="true">
           <path d="M12 17v5"></path><path d="M5 17h14"></path>
           <path d="M15 3.6 20.4 9l-3 3 1.1 4H5.5l1.1-4-3-3L9 3.6"></path>
         </svg>
       </button>
       <a class="folder-card-link" href="${escapeHtml(bookmark.url)}" data-url="${escapeHtml(bookmark.url)}">
         <div class="folder-card-favicon">
-          ${faviconUrl ? `<img class="folder-card-favicon-img" src="${escapeHtml(faviconUrl)}" alt="" loading="lazy">` : ''}
+          ${faviconUrl ? `<img class="folder-card-favicon-img" src="${escapeHtml(faviconUrl)}" alt="" loading="lazy" width="24" height="24">` : ''}
           <span class="folder-card-favicon-letter">${escapeHtml(initial)}</span>
         </div>
         <span class="folder-card-title">${escapeHtml(title)}</span>
@@ -865,7 +883,7 @@ function handleSearchInput() {
   // Web search item
   el.searchWebItem.innerHTML = `
     <button class="search-result-item search-web-item" data-index="${bookmarks.length + folders.length}" data-action="web">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="18" height="18">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="18" height="18" aria-hidden="true">
         <circle cx="11" cy="11" r="8"></circle>
         <path d="m21 21-4.35-4.35"></path>
       </svg>
@@ -900,7 +918,7 @@ function createSearchBookmarkItem(bookmark, query, index) {
   return `
     <button class="search-result-item" data-index="${index}" data-url="${escapeHtml(bookmark.url)}" data-action="bookmark">
       <div class="search-result-favicon">
-        ${faviconUrl ? `<img class="search-result-favicon-img" src="${escapeHtml(faviconUrl)}" alt="" loading="lazy">` : ''}
+        ${faviconUrl ? `<img class="search-result-favicon-img" src="${escapeHtml(faviconUrl)}" alt="" loading="lazy" width="16" height="16">` : ''}
         <span class="search-result-favicon-letter">${escapeHtml(initial)}</span>
       </div>
       <div class="search-result-content">
@@ -915,7 +933,7 @@ function createSearchFolderItem(folder, query, index) {
   return `
     <button class="search-result-item" data-index="${index}" data-folder-id="${escapeHtml(folder.id)}" data-action="folder">
       <div class="search-result-favicon search-result-folder-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="18" height="18">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="18" height="18" aria-hidden="true">
           <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
         </svg>
       </div>
@@ -993,6 +1011,10 @@ function showView(view) {
 
 // ─── Event Setup ────────────────────────────────────────────
 function setupEvents() {
+  if (el.homeSearchShortcut) {
+    el.homeSearchShortcut.textContent = getShortcutHint();
+  }
+
   // Home search: click triggers spotlight panel
   el.homeSearchInput.addEventListener('focus', e => {
     e.target.blur();

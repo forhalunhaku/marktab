@@ -8,7 +8,7 @@
     "description": "Extension description shown in browser extension listings."
   },
   "searchBookmarksAndFolders": {
-    "message": "Search bookmarks and folders..."
+    "message": "Search bookmarks and folders…"
   },
   "search": {
     "message": "Search"
@@ -41,7 +41,7 @@
     "message": "Folders"
   },
   "loadingBookmarks": {
-    "message": "Loading bookmarks..."
+    "message": "Loading bookmarks…"
   },
   "settings": {
     "message": "Settings"
@@ -53,7 +53,7 @@
     "message": "Back to home"
   },
   "searchInFolder": {
-    "message": "Search in folder..."
+    "message": "Search in folder…"
   },
   "folderTools": {
     "message": "Folder tools"
@@ -135,12 +135,18 @@
     "message": "Home"
   },
   "searchInFolderNamed": {
-    "message": "Search in $FOLDER$...",
+    "message": "Search in $FOLDER$…",
     "placeholders": {
       "folder": {
         "content": "$1"
       }
     }
+  },
+  "shortcutCtrlK": {
+    "message": "Ctrl + K"
+  },
+  "shortcutCmdK": {
+    "message": "⌘ K"
   },
   "pin": {
     "message": "Pin"

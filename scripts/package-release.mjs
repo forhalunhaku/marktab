@@ -2,12 +2,15 @@ import { spawn } from 'node:child_process';
 import { copyFile, mkdir, mkdtemp, readdir, rm, utimes } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
+import { readFileSync } from 'node:fs';
 
 const root = process.cwd();
-const version = process.env.npm_package_version;
+const version = process.env.npm_package_version || JSON.parse(
+  readFileSync(path.join(root, 'package.json'), 'utf8')
+).version;
 
 if (!version) {
-  console.error('npm_package_version is required.');
+  console.error('Package version is required.');
   process.exit(1);
 }
 

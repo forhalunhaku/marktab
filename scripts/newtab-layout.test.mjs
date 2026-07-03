@@ -33,5 +33,5 @@ test('recent bookmarks render as two presentation cards', () => {
 
 test('folders use a dedicated large-radius panel', () => {
   assert.match(css, /\.home-folder-pills\s*\{[^}]*border-radius:\s*var\(--radius-card-lg\)/s);
-  assert.match(css, /\.folder-pill-count\s*\{[^}]*min-width:\s*22px;[^}]*height:\s*22px/s);
+  assert.match(css, /\.folder-pill-count\s*\{[^}]*min-width:\s*28px;[^}]*height:\s*24px/s);
 });

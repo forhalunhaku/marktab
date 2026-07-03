@@ -16,6 +16,8 @@ const FALLBACK_MESSAGES = {
   quickSearchBookmarks: 'Quickly search bookmarks on the new tab page',
   localFirst: 'Local first',
   noBookmarkUpload: 'No bookmark data upload',
+  shortcutCtrlK: 'Ctrl + K',
+  shortcutCmdK: '⌘ K',
   addedToBookmarks: 'Added to bookmarks',
   addBookmarkFailed: 'Could not add bookmark. Try again.',
   cannotBookmarkPage: 'This page cannot be bookmarked'
@@ -40,6 +42,12 @@ function msg(key, substitutions = []) {
   );
 }
 
+function getShortcutParts() {
+  const platform = navigator.userAgentData?.platform || navigator.platform || navigator.userAgent || '';
+  const label = /\b(Mac|iPhone|iPad|iPod)\b/.test(platform) ? msg('shortcutCmdK') : msg('shortcutCtrlK');
+  return label.split(' ');
+}
+
 function localizeDocument() {
   const locale = getUiLocale().replace('_', '-');
   document.documentElement.lang = locale.startsWith('zh') ? 'zh-CN' : 'en';
@@ -50,6 +58,22 @@ function localizeDocument() {
   document.querySelectorAll('[data-i18n-aria-label]').forEach(node => {
     node.setAttribute('aria-label', msg(node.dataset.i18nAriaLabel));
   });
+
+  const shortcut = document.getElementById('popupShortcutKeys');
+  if (shortcut) {
+    shortcut.replaceChildren();
+    getShortcutParts().forEach(part => {
+      if (part === '+') {
+        const plus = document.createElement('span');
+        plus.textContent = '+';
+        shortcut.appendChild(plus);
+        return;
+      }
+      const kbd = document.createElement('kbd');
+      kbd.textContent = part;
+      shortcut.appendChild(kbd);
+    });
+  }
 }
 
 // 初始化

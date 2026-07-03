@@ -172,11 +172,15 @@ await rm(tmpDir, { recursive: true, force: true });
 await mkdir(tmpDir, { recursive: true });
 
 async function launchBrowser() {
+  const chromeExecutable = process.platform === 'darwin'
+    ? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
+    : undefined;
   const attempts = [
     {},
+    chromeExecutable ? { executablePath: chromeExecutable } : null,
     { channel: 'chrome' },
     { channel: 'msedge' }
-  ];
+  ].filter(Boolean);
   let lastError;
   for (const options of attempts) {
     try {
