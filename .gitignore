@@ -9,3 +9,6 @@ npm-debug.log*
 *.tmp
 .wrangler/
 .worktrees/
+
+# Throwaway design sketches
+sketches/

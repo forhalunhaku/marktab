@@ -12,30 +12,30 @@
   <!-- ========================================= -->
   <div class="view home-view" id="homeView" data-view="home">
     <div class="home-container">
-      <!-- Top bar: clock + date, intentionally small -->
-      <header class="home-topbar">
-        <time class="home-clock" id="homeClock">00:00</time>
-        <span class="home-date" id="homeDate" data-i18n="loadingBookmarks">Loading…</span>
-      </header>
-
-      <!-- Main hero: search is the centerpiece -->
+      <!-- ══════════════════════════════════════ -->
+      <!-- HERO: clock + greeting + search        -->
+      <!-- ══════════════════════════════════════ -->
       <div class="home-hero">
-        <div class="home-search-card">
-          <div class="home-search-inner">
-            <svg class="home-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+        <div class="hero-time" id="homeClock">00:00</div>
+        <div class="hero-date" id="homeDate" data-i18n="loadingBookmarks">Loading…</div>
+        <div class="hero-greeting" id="homeGreeting"></div>
+
+        <div class="search-wrap">
+          <div class="search-bar">
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
               <circle cx="11" cy="11" r="8"></circle>
               <path d="m21 21-4.35-4.35"></path>
             </svg>
             <input type="text" id="homeSearchInput" placeholder="Search bookmarks and folders…" autocomplete="off" aria-label="Search" data-i18n-placeholder="searchBookmarksAndFolders" data-i18n-aria-label="search">
-            <span class="home-search-hint-badge" id="homeSearchShortcut" translate="no">⌘ K</span>
+            <span class="search-hint-badge" id="homeSearchShortcut" translate="no">⌘ K</span>
           </div>
-        </div>
-        <div class="home-search-hints">
-          <span><kbd>Enter</kbd> <span data-i18n="hintOpen">open</span></span>
-          <span class="hint-dot">·</span>
-          <span><kbd>Shift</kbd>+<kbd>Enter</kbd> <span data-i18n="hintWeb">web</span></span>
-          <span class="hint-dot">·</span>
-          <span><kbd>Esc</kbd> <span data-i18n="hintClose">close</span></span>
+          <div class="search-hints">
+            <span><kbd>Enter</kbd> <span data-i18n="hintOpen">open</span></span>
+            <span class="hint-dot">·</span>
+            <span><kbd>Shift</kbd>+<kbd>Enter</kbd> <span data-i18n="hintWeb">web</span></span>
+            <span class="hint-dot">·</span>
+            <span><kbd>Esc</kbd> <span data-i18n="hintClose">close</span></span>
+          </div>
         </div>
       </div>
 
@@ -44,35 +44,27 @@
 
       <!-- Pinned -->
       <section class="home-section" id="homePinnedSection">
-        <div class="home-section-label">
-          <svg class="home-section-label-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-            <path d="M12 17v5"></path><path d="M5 17h14"></path><path d="M15 3.6 20.4 9l-3 3 1.1 4H5.5l1.1-4-3-3L9 3.6"></path>
-          </svg>
-          <span data-i18n="pinned">Pinned</span>
+        <div class="section-header">
+          <span class="section-label section-label-green" data-i18n="pinned">Pinned</span>
+          <div class="section-line is-green"></div>
         </div>
-        <div class="home-card-grid" id="homePinnedGrid"></div>
+        <div class="home-card-grid home-pinned-grid" id="homePinnedGrid"></div>
       </section>
 
       <!-- Recent -->
       <section class="home-section" id="homeRecentSection">
-        <div class="home-section-label home-section-label-row">
-          <span class="home-section-label-left">
-            <svg class="home-section-label-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-              <circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline>
-            </svg>
-            <span data-i18n="recent">Recent</span>
-          </span>
+        <div class="section-header">
+          <span class="section-label" data-i18n="recent">Recent</span>
+          <div class="section-line"></div>
         </div>
         <div class="home-card-grid" id="homeRecentGrid"></div>
       </section>
 
       <!-- Folders -->
       <section class="home-section" id="homeFoldersSection">
-        <div class="home-section-label">
-          <svg class="home-section-label-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
-          </svg>
-          <span data-i18n="folders">Folders</span>
+        <div class="section-header">
+          <span class="section-label" data-i18n="folders">Folders</span>
+          <div class="section-line"></div>
         </div>
         <div class="home-folder-pills" id="homeFolderPills"></div>
       </section>

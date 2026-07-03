@@ -58,7 +58,12 @@ const FALLBACK_MESSAGES = {
   theme: 'Theme: $1',
   themeLight: 'Light',
   themeDark: 'Dark',
-  themeSystem: 'System'
+  themeSystem: 'System',
+  greetingLate: '夜深了',
+  greetingMorning: '早上好',
+  greetingNoon: '中午好',
+  greetingAfternoon: '下午好',
+  greetingEvening: '晚上好'
 };
 
 // ─── DOM refs ────────────────────────────────────────────────
@@ -71,6 +76,7 @@ const el = {
   homeDate:            $('homeDate'),
   homeSearchInput:     $('homeSearchInput'),
   homeSearchShortcut:  $('homeSearchShortcut'),
+  homeGreeting:        $('homeGreeting'),
   homeSections:        $('homeSections'),
   homePinnedGrid:      $('homePinnedGrid'),
   homeRecentGrid:      $('homeRecentGrid'),
@@ -206,6 +212,15 @@ function updateTime() {
   el.homeDate.textContent = now.toLocaleDateString(getUiLocale(), {
     weekday: 'long', month: 'long', day: 'numeric'
   });
+  // Greeting
+  const hour = now.getHours();
+  let greeting;
+  if (hour < 6) greeting = msg('greetingLate');
+  else if (hour < 12) greeting = msg('greetingMorning');
+  else if (hour < 14) greeting = msg('greetingNoon');
+  else if (hour < 18) greeting = msg('greetingAfternoon');
+  else greeting = msg('greetingEvening');
+  if (el.homeGreeting) el.homeGreeting.textContent = greeting;
 }
 
 // ─── Theme ───────────────────────────────────────────────────
@@ -502,9 +517,9 @@ function renderHomeRecent() {
 
   // Manage "View all" button
   const section = el.homeRecentGrid.closest('.home-section');
-  const label = section?.querySelector('.home-section-label');
-  if (!label) return;
-  const existing = label.querySelector('.home-recent-view-all');
+  const header = section?.querySelector('.section-header');
+  if (!header) return;
+  const existing = header.querySelector('.home-recent-view-all');
   if (allRecent.length > 4) {
     if (!existing) {
       const btn = document.createElement('button');
@@ -514,7 +529,7 @@ function renderHomeRecent() {
         const recent20 = getRecentBookmarks(20);
         openFolderViewForBookmarks(recent20, msg('recent'));
       });
-      label.appendChild(btn);
+      header.appendChild(btn);
     }
   } else if (existing) {
     existing.remove();
@@ -662,13 +677,13 @@ function renderSidebar() {
   const folders = getUserFolders(false);
 
   let html = `
-    <button class="sidebar-nav-item" data-action="home">
+    <button class="sidebar-nav-item" data-action="home" title="${escapeHtml(msg('home'))}">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="18" height="18" aria-hidden="true">
         <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
       </svg>
       <span>${escapeHtml(msg('home'))}</span>
     </button>
-    <button class="sidebar-nav-item" data-action="recent">
+    <button class="sidebar-nav-item" data-action="recent" title="${escapeHtml(msg('recent'))}">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="18" height="18" aria-hidden="true">
         <circle cx="12" cy="12" r="10"></circle>
         <polyline points="12 6 12 12 16 14"></polyline>
