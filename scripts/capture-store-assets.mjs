@@ -93,6 +93,8 @@ async function screenshotFolder(page, width, height, pngName, jpgName, theme = '
 }
 
 async function screenshotPopup(page, width, height, pngName, jpgName) {
+  const popupWidth = 360;
+  const popupHeight = 520;
   const popupUrl = pathToFileURL(path.join(root, 'popup.html')).href;
   const wrapperPath = path.join(tmpDir, `popup-${width}x${height}.html`);
   const wrapper = `<!doctype html>
@@ -117,8 +119,8 @@ async function screenshotPopup(page, width, height, pngName, jpgName) {
       place-items: center;
     }
     iframe {
-      width: 320px;
-      height: 440px;
+      width: ${popupWidth}px;
+      height: ${popupHeight}px;
       border: 0;
       border-radius: 20px;
       box-shadow: 0 24px 60px rgba(15, 23, 42, 0.12);
@@ -231,7 +233,7 @@ async function screenshotReadmeAssets(browser) {
 
   const popupPage = await browser.newPage({ deviceScaleFactor: 2 });
   const popupUrl = pathToFileURL(path.join(root, 'popup.html')).href;
-  await popupPage.setViewportSize({ width: 340, height: 363 });
+  await popupPage.setViewportSize({ width: 360, height: 520 });
   await popupPage.goto(popupUrl);
   await popupPage.waitForLoadState('domcontentloaded');
   await popupPage.waitForTimeout(600);
