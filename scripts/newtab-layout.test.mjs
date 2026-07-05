@@ -60,10 +60,11 @@ test('recent bookmarks render inside a single lightweight surface', () => {
   assert.match(css, /\.home-recent-item:hover\s*\{[^}]*rgba\(79,\s*124,\s*255,\s*0\.06\)/s);
 });
 
-test('folders use larger unified folder cards without duplicate count badges', () => {
-  assert.match(css, /\.folder-pill\s*\{[^}]*min-height:\s*116px;[^}]*border-radius:\s*20px/s);
-  assert.match(css, /\.home-folder-pills\s*\{[^}]*repeat\(auto-fill,\s*minmax\(220px,\s*1fr\)\)/s);
-  assert.doesNotMatch(js, /folder-pill-count/);
+test('home content omits the duplicate folder grid while keeping the browse guide', () => {
+  assert.doesNotMatch(html, /id="homeFoldersSection"/);
+  assert.doesNotMatch(html, /id="homeFolderPills"/);
+  assert.doesNotMatch(js, /renderHomeFolders/);
+  assert.match(js, /msg\('browseFolders'\)/);
 });
 
 test('folder view uses a constrained responsive grid and compact cards', () => {

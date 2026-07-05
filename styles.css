@@ -679,7 +679,7 @@ mark {
 .home-container {
   width: min(100%, var(--content-max));
   margin: 0 auto;
-  padding: 32px clamp(12px, 2vw, 24px) 56px;
+  padding: clamp(40px, 4vh, 52px) clamp(12px, 2vw, 24px) 56px;
 }
 
 .home-hero {

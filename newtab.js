@@ -100,7 +100,6 @@ const el = {
   homeSections:        $('homeSections'),
   homePinnedGrid:      $('homePinnedGrid'),
   homeRecentGrid:      $('homeRecentGrid'),
-  homeFolderPills:     $('homeFolderPills'),
   homeLoading:         $('homeLoading'),
   homeFab:             $('homeFab'),
   homeSidebarFolders:  $('homeSidebarFolders'),
@@ -494,7 +493,6 @@ function renderHome() {
   renderHomeSidebar();
   renderHomePinned();
   renderHomeRecent();
-  renderHomeFolders();
 }
 
 function renderHomeSidebar() {
@@ -655,31 +653,6 @@ function openFolderViewForBookmarks(bookmarks, title) {
   renderSidebar();
   renderFolderContentForBookmarks(bookmarks, title);
   showView('folder');
-}
-
-function renderHomeFolders() {
-  const folders = getUserFolders(false)
-    .slice()
-    .sort((a, b) => (b.bookmarkCount - a.bookmarkCount) || a.title.localeCompare(b.title, getUiLocale()));
-  el.homeFolderPills.innerHTML = folders.map(f => {
-    const meta = bookmarkCountLabel(f.bookmarkCount);
-    return `
-    <button class="folder-pill" data-folder-id="${escapeHtml(f.id)}" title="${escapeHtml(f.pathString)}">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="16" height="16" aria-hidden="true">
-        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
-      </svg>
-      <span class="folder-pill-body">
-        <span class="folder-pill-title">${escapeHtml(f.title)}</span>
-        <span class="folder-pill-meta">${escapeHtml(meta)}</span>
-      </span>
-    </button>
-  `;
-  }).join('');
-  el.homeFolderPills.querySelectorAll('.folder-pill').forEach(btn => {
-    btn.addEventListener('click', () => {
-      openFolderView(btn.dataset.folderId);
-    });
-  });
 }
 
 function createHomeCard(bookmark) {
