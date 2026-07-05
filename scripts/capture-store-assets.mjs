@@ -51,19 +51,42 @@ async function loadPlaywright() {
   throw new Error('Playwright is required. Install it locally or run inside a Codex desktop runtime with bundled Node modules.');
 }
 
-async function screenshotPage(page, file, width, height, pngName, jpgName) {
+async function waitForNewTabReady(page) {
+  await page.waitForSelector('.search-bar', { state: 'visible', timeout: 8000 });
+  await page.waitForFunction(() => {
+    const clock = document.querySelector('#homeClock');
+    const folders = document.querySelectorAll('.home-sidebar-folder');
+    return clock && clock.textContent !== '00:00' && folders.length > 0;
+  }, { timeout: 10000 });
+}
+
+async function applyPreviewTheme(page, theme) {
+  await page.evaluate(value => {
+    document.documentElement.dataset.theme = value;
+  }, theme);
+}
+
+async function screenshotPage(page, file, width, height, pngName, jpgName, theme = 'light') {
   await page.setViewportSize({ width, height });
   await page.goto(pathToFileURL(path.join(root, file)).href);
   await page.waitForLoadState('domcontentloaded');
-  await page.waitForSelector('.home-search-card', { state: 'visible', timeout: 8000 });
-  await page.waitForFunction(() => {
-    const clock = document.querySelector('#homeClock');
-    const pills = document.querySelectorAll('.folder-pill');
-    return clock && clock.textContent !== '00:00' && pills.length > 0;
-  }, { timeout: 10000 });
-  await page.waitForTimeout(1000);
+  await waitForNewTabReady(page);
+  await applyPreviewTheme(page, theme);
+  await page.waitForTimeout(600);
   const pngPath = path.join(outputDir, pngName);
   await page.screenshot({ path: pngPath, fullPage: false });
+  if (jpgName) {
+    await page.screenshot({ path: path.join(outputDir, jpgName), type: 'jpeg', quality: 92, fullPage: false });
+  }
+}
+
+async function screenshotFolder(page, width, height, pngName, jpgName, theme = 'light') {
+  await loadNewTabPreview(page, width, height, theme);
+  await page.locator('.home-sidebar-folder').first().click();
+  await page.waitForSelector('#folderView', { state: 'visible', timeout: 8000 });
+  await page.waitForSelector('#folderBookmarksGrid .folder-card', { state: 'visible', timeout: 8000 });
+  await page.waitForTimeout(500);
+  await page.screenshot({ path: path.join(outputDir, pngName), fullPage: false });
   if (jpgName) {
     await page.screenshot({ path: path.join(outputDir, jpgName), type: 'jpeg', quality: 92, fullPage: false });
   }
@@ -84,7 +107,7 @@ async function screenshotPopup(page, width, height, pngName, jpgName) {
       height: 100%;
       margin: 0;
       overflow: hidden;
-      background: #f6f8f3;
+      background: #f4f7fb;
       font-family: "Geist", "Noto Sans SC", "PingFang SC", "Helvetica Neue", system-ui, sans-serif;
     }
     .stage {
@@ -98,7 +121,7 @@ async function screenshotPopup(page, width, height, pngName, jpgName) {
       height: 440px;
       border: 0;
       border-radius: 20px;
-      box-shadow: 0 24px 60px rgba(37, 58, 43, 0.12);
+      box-shadow: 0 24px 60px rgba(15, 23, 42, 0.12);
       overflow: hidden;
     }
   </style>
@@ -121,16 +144,65 @@ async function screenshotPopup(page, width, height, pngName, jpgName) {
   }
 }
 
-async function loadNewTabPreview(page, width = 1470, height = 712, deviceScaleFactor = 2) {
+async function screenshotSmallPromo(page) {
+  const width = 440;
+  const height = 280;
+  const previewWidth = 1280;
+  const previewHeight = 800;
+  const scale = width / previewWidth;
+  const newTabUrl = pathToFileURL(path.join(root, 'newtab.html')).href;
+  const wrapperPath = path.join(tmpDir, 'small-promo.html');
+  const wrapper = `<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MarkTab Small Promo</title>
+  <style>
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: #f4f7fb;
+    }
+    iframe {
+      width: ${previewWidth}px;
+      height: ${previewHeight}px;
+      border: 0;
+      transform: scale(${scale});
+      transform-origin: top left;
+    }
+  </style>
+</head>
+<body>
+  <iframe src="${newTabUrl}"></iframe>
+</body>
+</html>`;
+
+  await writeFile(wrapperPath, wrapper);
+  await page.setViewportSize({ width, height });
+  await page.goto(pathToFileURL(wrapperPath).href);
+  await page.waitForLoadState('domcontentloaded');
+  const previewFrame = page.frames().find(frame => frame.url() === newTabUrl);
+  if (!previewFrame) throw new Error('Small promo preview failed to load.');
+  await waitForNewTabReady(previewFrame);
+  await applyPreviewTheme(previewFrame, 'light');
+  await page.waitForTimeout(600);
+  await page.screenshot({
+    path: path.join(outputDir, 'small-promo-440x280.jpg'),
+    type: 'jpeg',
+    quality: 92,
+    fullPage: false
+  });
+}
+
+async function loadNewTabPreview(page, width = 1470, height = 712, theme = 'light') {
   await page.setViewportSize({ width, height });
   await page.goto(pathToFileURL(path.join(root, 'newtab.html')).href);
   await page.waitForLoadState('domcontentloaded');
-  await page.waitForSelector('.home-search-card', { state: 'visible', timeout: 8000 });
-  await page.waitForFunction(() => {
-    const clock = document.querySelector('#homeClock');
-    const pills = document.querySelectorAll('.folder-pill');
-    return clock && clock.textContent !== '00:00' && pills.length > 0;
-  }, { timeout: 10000 });
+  await waitForNewTabReady(page);
+  await applyPreviewTheme(page, theme);
   await page.waitForTimeout(600);
 }
 
@@ -150,8 +222,9 @@ async function screenshotReadmeAssets(browser) {
   await page.locator('#searchPanel').screenshot({ path: path.join(readmeScreenshotDir, 'spotlight.png') });
 
   await loadNewTabPreview(page);
-  await page.locator('.folder-pill').first().click();
+  await page.locator('.home-sidebar-folder').first().click();
   await page.waitForSelector('#folderView', { state: 'visible', timeout: 8000 });
+  await page.waitForSelector('#folderBookmarksGrid .folder-card', { state: 'visible', timeout: 8000 });
   await page.waitForTimeout(500);
   await page.screenshot({ path: path.join(readmeScreenshotDir, 'folder.png'), fullPage: false });
   await page.close();
@@ -197,11 +270,13 @@ const page = await browser.newPage({ deviceScaleFactor: 1 });
 
 await screenshotPage(page, 'newtab.html', 1280, 800, 'newtab-screenshot-1280x800.png', 'newtab-screenshot-1280x800.jpg');
 await screenshotPage(page, 'newtab.html', 1280, 720, 'newtab-screenshot.png', null);
+await screenshotPage(page, 'newtab.html', 1280, 800, 'newtab-dark-1280x800.png', 'newtab-dark-1280x800.jpg', 'dark');
+await screenshotFolder(page, 1280, 800, 'folder-screenshot-1280x800.png', 'folder-screenshot-1280x800.jpg');
+await screenshotFolder(page, 1280, 800, 'folder-dark-1280x800.png', 'folder-dark-1280x800.jpg', 'dark');
 
 await screenshotPopup(page, 1280, 800, 'popup-screenshot-1280x800.png', 'popup-screenshot-1280x800.jpg');
 await screenshotPopup(page, 1280, 720, 'popup-screenshot.png', null);
-await screenshotPage(page, 'newtab.html', 440, 280, 'small-promo-440x280.png', 'small-promo-440x280.jpg');
-await rm(path.join(outputDir, 'small-promo-440x280.png'), { force: true });
+await screenshotSmallPromo(page);
 
 await screenshotReadmeAssets(browser);
 
