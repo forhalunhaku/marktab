@@ -102,6 +102,8 @@ const el = {
   homeRecentGrid:      $('homeRecentGrid'),
   homeLoading:         $('homeLoading'),
   homeFab:             $('homeFab'),
+  homeSidebar:         $('homeSidebar'),
+  homeSidebarToggle:   $('homeSidebarToggle'),
   homeSidebarFolders:  $('homeSidebarFolders'),
   homeSidebarFolderTotal: $('homeSidebarFolderTotal'),
   homeStatsBookmarks:  $('homeStatsBookmarks'),
@@ -137,6 +139,7 @@ const el = {
   searchFolderItems:   $('searchFolderItems'),
   searchWebItem:       $('searchWebItem'),
   searchEmpty:         $('searchEmpty'),
+  mobileDrawerScrim:   $('mobileDrawerScrim'),
   toastContainer:      $('toastContainer')
 };
 
@@ -859,6 +862,7 @@ let searchResultIndex = -1;
 let searchResults = [];
 
 function openSearch() {
+  closeMobileDrawers();
   el.searchPanelOverlay.style.display = 'flex';
   el.searchPanel.style.display = 'flex';
   el.searchPanelInput.value = '';
@@ -870,13 +874,13 @@ function openSearch() {
   el.searchWebItem.innerHTML = '';
   el.searchEmpty.style.display = 'flex';
   el.searchEmpty.querySelector('p').textContent = msg('startTypingToSearch');
-  document.body.classList.add('search-open');
+  updateBodyScrollLock();
 }
 
 function closeSearch() {
   el.searchPanelOverlay.style.display = 'none';
   el.searchPanel.style.display = 'none';
-  document.body.classList.remove('search-open');
+  updateBodyScrollLock();
   searchResultIndex = -1;
   searchResults = [];
 }
@@ -1062,14 +1066,46 @@ function renderSettingsPanel() {
 }
 
 function openSettingsPanel() {
+  closeMobileDrawers();
   renderSettingsPanel();
   el.settingsPanelOverlay.style.display = 'flex';
-  document.body.classList.add('search-open');
+  updateBodyScrollLock();
 }
 
 function closeSettingsPanel() {
   el.settingsPanelOverlay.style.display = 'none';
-  document.body.classList.remove('search-open');
+  updateBodyScrollLock();
+}
+
+function isMobileLayout() {
+  return window.innerWidth <= 768;
+}
+
+function isDrawerOpen() {
+  return Boolean(el.homeSidebar?.classList.contains('open') || el.folderSidebar?.classList.contains('open'));
+}
+
+function updateBodyScrollLock() {
+  const shouldLock =
+    el.settingsPanelOverlay.style.display === 'flex' ||
+    el.searchPanelOverlay.style.display === 'flex' ||
+    isDrawerOpen();
+  document.body.classList.toggle('search-open', shouldLock);
+  document.body.classList.toggle('drawer-open', isDrawerOpen());
+}
+
+function closeMobileDrawers() {
+  el.homeSidebar?.classList.remove('open');
+  el.folderSidebar?.classList.remove('open');
+  updateBodyScrollLock();
+}
+
+function toggleMobileDrawer(target) {
+  if (!isMobileLayout() || !target) return;
+  const shouldOpen = !target.classList.contains('open');
+  closeMobileDrawers();
+  if (shouldOpen) target.classList.add('open');
+  updateBodyScrollLock();
 }
 
 // ─── Theme Cycle ────────────────────────────────────────────
@@ -1088,12 +1124,14 @@ function cycleTheme() {
 function returnHome() {
   renderHome();
   showView('home');
+  closeMobileDrawers();
 }
 
 function showView(view) {
   el.homeView.style.display = view === 'home' ? '' : 'none';
   el.folderView.style.display = view === 'folder' ? '' : 'none';
   el.homeFab.style.display = window.innerWidth <= 768 && view === 'home' ? 'flex' : 'none';
+  closeMobileDrawers();
 }
 
 // ─── Event Setup ────────────────────────────────────────────
@@ -1141,6 +1179,7 @@ function setupEvents() {
       };
       document.querySelectorAll('[data-home-nav]').forEach(btn => btn.classList.toggle('active', btn === item));
       map[target]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      closeMobileDrawers();
     });
   });
 
@@ -1151,6 +1190,7 @@ function setupEvents() {
         activeFolderId = '__recent';
         renderFolderContentForBookmarks(getRecentBookmarks(20), msg('recent'));
         renderSidebar();
+        closeMobileDrawers();
         return;
       }
       returnHome();
@@ -1161,18 +1201,22 @@ function setupEvents() {
   });
 
   // Sidebar toggle (mobile)
-  const sidebarToggle = document.getElementById('sidebarToggle');
-  if (sidebarToggle) {
-    sidebarToggle.addEventListener('click', () => {
-      el.folderSidebar.classList.toggle('open');
-    });
-  }
-  // Close sidebar when clicking content on mobile
-  el.folderContent?.addEventListener('click', () => {
-    if (window.innerWidth <= 768) {
-      el.folderSidebar.classList.remove('open');
-    }
+  el.homeSidebarToggle?.addEventListener('click', () => {
+    toggleMobileDrawer(el.homeSidebar);
   });
+
+  const sidebarToggle = document.getElementById('sidebarToggle');
+  sidebarToggle?.addEventListener('click', () => {
+    toggleMobileDrawer(el.folderSidebar);
+  });
+
+  el.folderContent?.addEventListener('click', () => {
+    if (isMobileLayout()) closeMobileDrawers();
+  });
+  el.homeSections?.addEventListener('click', () => {
+    if (isMobileLayout()) closeMobileDrawers();
+  });
+  el.mobileDrawerScrim?.addEventListener('click', closeMobileDrawers);
 
   // Search panel
   el.searchPanelInput.addEventListener('input', debounce(handleSearchInput, 60));
@@ -1184,6 +1228,7 @@ function setupEvents() {
   });
   el.settingsPanel.addEventListener('click', e => e.stopPropagation());
   el.searchPanel.addEventListener('click', e => e.stopPropagation());
+  window.addEventListener('resize', closeMobileDrawers);
 
   // Search result clicks (delegated)
   el.searchPanelResults.addEventListener('click', e => {

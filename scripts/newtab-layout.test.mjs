@@ -67,6 +67,17 @@ test('home content omits the duplicate folder grid while keeping the browse guid
   assert.match(js, /msg\('browseFolders'\)/);
 });
 
+test('mobile layout uses drawer navigation instead of stacking the full sidebar above content', () => {
+  assert.match(html, /id="homeSidebarToggle"/);
+  assert.match(html, /class="home-mobile-nav"/);
+  assert.match(html, /id="mobileDrawerScrim"/);
+  assert.match(js, /function toggleMobileDrawer\(target\)/);
+  assert.match(js, /window\.innerWidth <= 768/);
+  assert.match(css, /@media \(max-width:\s*768px\)[\s\S]*?\.home-sidebar,\s*\.folder-sidebar\s*\{[^}]*position:\s*fixed;[^}]*transform:\s*translateX\(calc\(-100%\s*-\s*24px\)\)/s);
+  assert.match(css, /@media \(max-width:\s*768px\)[\s\S]*?\.home-mobile-nav\s*\{[^}]*display:\s*flex/s);
+  assert.match(css, /body\.drawer-open \.mobile-drawer-scrim\s*\{[^}]*pointer-events:\s*auto/s);
+});
+
 test('folder view uses a constrained responsive grid and compact cards', () => {
   assert.match(css, /\.folder-content-inner\s*\{[^}]*width:\s*min\(100%,\s*var\(--content-max\)\)/s);
   assert.match(css, /\.folder-bookmarks-grid\s*\{[^}]*repeat\(auto-fill,\s*minmax\(180px,\s*1fr\)\)[^}]*gap:\s*16px/s);
