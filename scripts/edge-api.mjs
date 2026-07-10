@@ -25,7 +25,8 @@ async function request({ action, url: target, init, fetchImpl, secrets, expected
     const text = await response.text();
     let data = null;
     if (text) { try { data = JSON.parse(text); } catch { data = text; } }
-    if (response.status !== expectedStatus) throw new Error(`${action} failed (HTTP ${response.status}): ${safe(JSON.stringify(data), secrets)}`);
+    const expectedStatuses = Array.isArray(expectedStatus) ? expectedStatus : [expectedStatus];
+    if (!expectedStatuses.includes(response.status)) throw new Error(`${action} failed (HTTP ${response.status}): ${safe(JSON.stringify(data), secrets)}`);
     return { data, location: response.headers.get('location') };
   } catch (error) {
     const reason = controller.signal.aborted ? controller.signal.reason : error;
@@ -55,7 +56,7 @@ export async function publishSubmission({ productId, clientId, apiKey, notes, fe
 
 export async function getOperation({ productId, clientId, apiKey, operationId, kind, fetchImpl = fetch, signal }) {
   const suffix = kind === 'upload' ? `/submissions/draft/package/operations/${encodeURIComponent(operationId)}` : `/submissions/operations/${encodeURIComponent(operationId)}`;
-  return (await request({ action: `Edge ${kind} status`, url: url(productId, suffix), init: { method: 'GET', headers: authHeaders(clientId, apiKey) }, fetchImpl, secrets: [clientId, apiKey], expectedStatus: 200, signal })).data;
+  return (await request({ action: `Edge ${kind} status`, url: url(productId, suffix), init: { method: 'GET', headers: authHeaders(clientId, apiKey) }, fetchImpl, secrets: [clientId, apiKey], expectedStatus: [200, 202], signal })).data;
 }
 
 export async function waitForOperation({ productId, clientId, apiKey, operationId, kind, fetchImpl = fetch, sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms)), maxAttempts = 60, intervalMs = 5000, signal }) {

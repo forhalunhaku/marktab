@@ -17,3 +17,24 @@ test('publishes Edge artifact in order', async () => {
 test('requires Edge credentials', async () => {
   await assert.rejects(publishPackage({ artifactPath: 'missing.zip', env: {} }), /Missing EDGE_PRODUCT_ID/);
 });
+
+test('resumes an existing Edge upload without reading or uploading an artifact', async () => {
+  const calls = [];
+  const api = {
+    uploadPackage: async () => { throw new Error('must not upload'); },
+    waitForOperation: async ({ kind, operationId }) => calls.push(`wait-${kind}-${operationId}`),
+    publishSubmission: async () => 'publish-operation',
+  };
+  await publishPackage({
+    env: {
+      EDGE_PRODUCT_ID: 'product',
+      EDGE_CLIENT_ID: 'client',
+      EDGE_API_KEY: 'key',
+      EDGE_UPLOAD_OPERATION_ID: 'upload-operation',
+      VERSION: '2.0.5',
+    },
+    api,
+    log: () => {},
+  });
+  assert.deepEqual(calls, ['wait-upload-upload-operation', 'wait-publish-publish-operation']);
+});

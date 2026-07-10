@@ -19,6 +19,7 @@ test('release workflow has intended triggers and controls', async () => {
   assert.match(workflow, /^name: Release$/m);
   assert.match(workflow, /^on:\n  push:\n    tags:\n      - 'v\*'\n  workflow_dispatch:/m);
   assert.match(workflow, /publish_github_release_only:\n        description: .*Chrome.*Edge.*\n        required: false/);
+  assert.match(workflow, /resume_edge_upload_operation_id:\n        description: .*Edge.*without resubmitting Chrome\n        required: false/);
   assert.doesNotMatch(workflow, /pull_request/);
   assert.match(workflow, /^permissions:\n  contents: write$/m);
   assert.match(workflow, /^concurrency:\n  group: browser-store-release\n  queue: max\n  cancel-in-progress: false$/m);
@@ -59,16 +60,19 @@ test('store secrets are confined to their respective steps', async () => {
     assert.match(chromeStep, new RegExp(`${name}: \\$\\{\\{ secrets\\.${name} \\}\\}`));
   }
   for (const name of ['EDGE_PRODUCT_ID', 'EDGE_CLIENT_ID', 'EDGE_API_KEY']) {
-    assert.equal((workflow.match(new RegExp(`\\$\\{\\{ secrets\\.${name} \\}\\}`, 'g')) ?? []).length, 1);
+    assert.equal((workflow.match(new RegExp(`\\$\\{\\{ secrets\\.${name} \\}\\}`, 'g')) ?? []).length, 2);
     assert.match(edgeStep, new RegExp(`${name}: \\$\\{\\{ secrets\\.${name} \\}\\}`));
   }
 });
 
 test('recovery skips both stores and keeps failed releases as drafts', async () => {
   const workflow = await readWorkflow();
-  for (const step of ['Check out release tag', 'Set up Node.js', 'Verify release version', 'Run tests', 'Validate extension', 'Package extension', 'Prepare draft GitHub Release', 'Publish to Chrome Web Store', 'Publish to Microsoft Edge Add-ons']) {
-    assert.match(workflow, new RegExp(`- name: ${step}\\n        if: steps\\.release\\.outputs\\.recovery != 'true'`));
+  for (const step of ['Check out release tag', 'Verify release version', 'Run tests', 'Validate extension', 'Package extension', 'Prepare draft GitHub Release', 'Publish to Chrome Web Store', 'Publish to Microsoft Edge Add-ons']) {
+    assert.match(workflow, new RegExp(`- name: ${step}\\n        if: steps\\.release\\.outputs\\.recovery != 'true' && steps\\.release\\.outputs\\.edge_recovery != 'true'`));
   }
+  assert.match(workflow, /- name: Resume Microsoft Edge Add-ons upload\n        if: steps\.release\.outputs\.edge_recovery == 'true'/);
+  assert.match(workflow, /npm run edge:publish\n/);
+  assert.match(workflow, /resume that operation instead of resubmitting Chrome/i);
   assert.match(workflow, /Chrome Web Store and Edge Add-ons acceptance were confirmed/i);
   assert.match(workflow, /Recovery mode skips both store submissions/i);
   assert.match(workflow, /draft remains unpublished/i);
