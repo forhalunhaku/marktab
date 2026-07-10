@@ -26,6 +26,10 @@ let allBookmarks = [];
 let bookmarkTree = [];
 let flatFolders = [];
 let uncategorizedBookmarks = [];
+let drawerReturnFocus = null;
+let searchReturnFocus = null;
+let settingsReturnFocus = null;
+let suppressSearchTriggerFocus = false;
 
 const FALLBACK_MESSAGES = {
   searchBookmarksAndFolders: '搜索书签、文件夹或输入网址',
@@ -90,6 +94,7 @@ const FALLBACK_MESSAGES = {
 const $ = id => document.getElementById(id);
 const el = {
   homeView:            $('homeView'),
+  homeMain:            document.querySelector('.home-main'),
   folderView:          $('folderView'),
   homeClock:           $('homeClock'),
   homeDate:            $('homeDate'),
@@ -111,6 +116,7 @@ const el = {
   homeSidebarSettingsBtn: $('homeSidebarSettingsBtn'),
   homeSidebarThemeBtn: $('homeSidebarThemeBtn'),
   folderSidebar:       $('folderSidebar'),
+  sidebarToggle:       $('sidebarToggle'),
   sidebarNav:          $('sidebarNav'),
   sidebarHomeBtn:      $('sidebarHomeBtn'),
   folderSidebarHomeBtn: $('folderSidebarHomeBtn'),
@@ -142,6 +148,69 @@ const el = {
   mobileDrawerScrim:   $('mobileDrawerScrim'),
   toastContainer:      $('toastContainer')
 };
+
+const FOCUSABLE_SELECTOR = [
+  'a[href]',
+  'button:not([disabled])',
+  'input:not([disabled])',
+  'select:not([disabled])',
+  'textarea:not([disabled])',
+  '[tabindex]:not([tabindex="-1"])'
+].join(',');
+
+function resolveFocusOrigin(origin, fallback = null) {
+  if (origin instanceof HTMLElement) return origin;
+  if (origin?.currentTarget instanceof HTMLElement) return origin.currentTarget;
+  if (document.activeElement instanceof HTMLElement && document.activeElement !== document.body) {
+    return document.activeElement;
+  }
+  return fallback;
+}
+
+function resolveAccessibleReturnFocus(target) {
+  if (!target || !target.isConnected) return null;
+  if (isMobileLayout() && target.closest('#homeSidebar')) return el.homeSidebarToggle;
+  if (isMobileLayout() && target.closest('#folderSidebar')) return el.sidebarToggle;
+  return target;
+}
+
+function restoreFocus(target, fallback = null) {
+  const destination = resolveAccessibleReturnFocus(target) || fallback;
+  if (!destination?.isConnected) return;
+  requestAnimationFrame(() => destination.focus({ preventScroll: true }));
+}
+
+function blurFocusWithin(container) {
+  if (container?.contains(document.activeElement)) document.activeElement.blur();
+}
+
+function getFocusableElements(container) {
+  return [...container.querySelectorAll(FOCUSABLE_SELECTOR)].filter(item =>
+    !item.hidden && item.getAttribute('aria-hidden') !== 'true' && !item.closest('[inert]')
+  );
+}
+
+function trapFocus(container, event) {
+  if (event.key !== 'Tab') return;
+  const focusable = getFocusableElements(container);
+  if (!focusable.length) {
+    event.preventDefault();
+    container.focus();
+    return;
+  }
+  const first = focusable[0];
+  const last = focusable[focusable.length - 1];
+  if (event.shiftKey && document.activeElement === first) {
+    event.preventDefault();
+    last.focus();
+  } else if (!event.shiftKey && document.activeElement === last) {
+    event.preventDefault();
+    first.focus();
+  } else if (!container.contains(document.activeElement)) {
+    event.preventDefault();
+    first.focus();
+  }
+}
 
 // ─── Helpers ─────────────────────────────────────────────────
 function escapeHtml(text) {
@@ -861,9 +930,11 @@ function filterFolderBookmarks(query) {
 let searchResultIndex = -1;
 let searchResults = [];
 
-function openSearch() {
+function openSearch(origin) {
+  searchReturnFocus = resolveFocusOrigin(origin, el.homeSearchInput);
   closeMobileDrawers();
   el.searchPanelOverlay.style.display = 'flex';
+  el.searchPanelOverlay.setAttribute('aria-hidden', 'false');
   el.searchPanel.style.display = 'flex';
   el.searchPanelInput.value = '';
   el.searchPanelInput.focus();
@@ -878,11 +949,17 @@ function openSearch() {
 }
 
 function closeSearch() {
+  blurFocusWithin(el.searchPanel);
   el.searchPanelOverlay.style.display = 'none';
+  el.searchPanelOverlay.setAttribute('aria-hidden', 'true');
   el.searchPanel.style.display = 'none';
   updateBodyScrollLock();
   searchResultIndex = -1;
   searchResults = [];
+  const returnFocus = resolveAccessibleReturnFocus(searchReturnFocus) || el.homeSearchInput;
+  if (returnFocus === el.homeSearchInput) suppressSearchTriggerFocus = true;
+  restoreFocus(returnFocus);
+  searchReturnFocus = null;
 }
 
 function handleSearchInput() {
@@ -1065,47 +1142,107 @@ function renderSettingsPanel() {
   });
 }
 
-function openSettingsPanel() {
+function openSettingsPanel(origin) {
+  settingsReturnFocus = resolveFocusOrigin(origin);
   closeMobileDrawers();
   renderSettingsPanel();
   el.settingsPanelOverlay.style.display = 'flex';
+  el.settingsPanelOverlay.setAttribute('aria-hidden', 'false');
   updateBodyScrollLock();
+  requestAnimationFrame(() => el.settingsPanelClose.focus());
 }
 
 function closeSettingsPanel() {
+  blurFocusWithin(el.settingsPanel);
   el.settingsPanelOverlay.style.display = 'none';
+  el.settingsPanelOverlay.setAttribute('aria-hidden', 'true');
   updateBodyScrollLock();
+  restoreFocus(settingsReturnFocus);
+  settingsReturnFocus = null;
 }
 
 function isMobileLayout() {
-  return window.innerWidth <= 768;
+  return window.innerWidth <= 1200;
 }
 
 function isDrawerOpen() {
-  return Boolean(el.homeSidebar?.classList.contains('open') || el.folderSidebar?.classList.contains('open'));
+  return isMobileLayout() && Boolean(el.homeSidebar?.classList.contains('open') || el.folderSidebar?.classList.contains('open'));
+}
+
+function syncDrawerAccessibility() {
+  const drawerLayout = isMobileLayout();
+  const pairs = [
+    [el.homeSidebar, el.homeSidebarToggle],
+    [el.folderSidebar, el.sidebarToggle]
+  ];
+
+  pairs.forEach(([sidebar, toggle]) => {
+    if (!sidebar || !toggle) return;
+    if (!drawerLayout) sidebar.classList.remove('open');
+    const open = drawerLayout && sidebar.classList.contains('open');
+    sidebar.inert = drawerLayout && !open;
+    sidebar.setAttribute('aria-hidden', String(drawerLayout && !open));
+    toggle.setAttribute('aria-expanded', String(open));
+  });
+
+  const homeOpen = drawerLayout && el.homeSidebar.classList.contains('open');
+  const folderOpen = drawerLayout && el.folderSidebar.classList.contains('open');
+  el.homeMain.inert = homeOpen;
+  el.folderContent.inert = folderOpen;
+  el.sidebarToggle.inert = folderOpen;
+
+  const open = isDrawerOpen();
+  el.mobileDrawerScrim.inert = !open;
+  el.mobileDrawerScrim.tabIndex = open ? 0 : -1;
+  el.mobileDrawerScrim.setAttribute('aria-hidden', String(!open));
 }
 
 function updateBodyScrollLock() {
-  const shouldLock =
+  const modalOpen =
     el.settingsPanelOverlay.style.display === 'flex' ||
-    el.searchPanelOverlay.style.display === 'flex' ||
+    el.searchPanelOverlay.style.display === 'flex';
+  const shouldLock =
+    modalOpen ||
     isDrawerOpen();
+  el.homeView.inert = modalOpen;
+  el.folderView.inert = modalOpen;
   document.body.classList.toggle('search-open', shouldLock);
   document.body.classList.toggle('drawer-open', isDrawerOpen());
 }
 
-function closeMobileDrawers() {
+function closeMobileDrawers({ restoreTrigger = false } = {}) {
+  const returnFocus = drawerReturnFocus;
+  blurFocusWithin(el.homeSidebar);
+  blurFocusWithin(el.folderSidebar);
   el.homeSidebar?.classList.remove('open');
   el.folderSidebar?.classList.remove('open');
+  drawerReturnFocus = null;
+  syncDrawerAccessibility();
   updateBodyScrollLock();
+  if (restoreTrigger) restoreFocus(returnFocus);
 }
 
-function toggleMobileDrawer(target) {
+function toggleMobileDrawer(target, trigger) {
   if (!isMobileLayout() || !target) return;
   const shouldOpen = !target.classList.contains('open');
+  if (!shouldOpen) {
+    closeMobileDrawers({ restoreTrigger: true });
+    return;
+  }
   closeMobileDrawers();
-  if (shouldOpen) target.classList.add('open');
+  drawerReturnFocus = resolveFocusOrigin(trigger);
+  target.classList.add('open');
+  syncDrawerAccessibility();
   updateBodyScrollLock();
+  requestAnimationFrame(() => getFocusableElements(target)[0]?.focus());
+}
+
+function prefersReducedMotion() {
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
+function getScrollBehavior() {
+  return prefersReducedMotion() ? 'auto' : 'smooth';
 }
 
 // ─── Theme Cycle ────────────────────────────────────────────
@@ -1142,8 +1279,22 @@ function setupEvents() {
 
   // Home search: click triggers spotlight panel
   el.homeSearchInput.addEventListener('focus', e => {
+    if (suppressSearchTriggerFocus) {
+      suppressSearchTriggerFocus = false;
+      return;
+    }
+    const trigger = e.target;
     e.target.blur();
-    openSearch();
+    openSearch(trigger);
+  });
+  el.homeSearchInput.addEventListener('click', e => {
+    if (el.searchPanelOverlay.style.display !== 'flex') openSearch(e.currentTarget);
+  });
+  el.homeSearchInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      openSearch(e.currentTarget);
+    }
   });
 
   // Folder search — inline filtering
@@ -1178,7 +1329,7 @@ function setupEvents() {
         recent: $('homeRecentSection')
       };
       document.querySelectorAll('[data-home-nav]').forEach(btn => btn.classList.toggle('active', btn === item));
-      map[target]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      map[target]?.scrollIntoView({ behavior: getScrollBehavior(), block: 'start' });
       closeMobileDrawers();
     });
   });
@@ -1195,19 +1346,18 @@ function setupEvents() {
       }
       returnHome();
       if (target === 'pinned') {
-        requestAnimationFrame(() => $('homePinnedSection')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+        requestAnimationFrame(() => $('homePinnedSection')?.scrollIntoView({ behavior: getScrollBehavior(), block: 'start' }));
       }
     });
   });
 
   // Sidebar toggle (mobile)
   el.homeSidebarToggle?.addEventListener('click', () => {
-    toggleMobileDrawer(el.homeSidebar);
+    toggleMobileDrawer(el.homeSidebar, el.homeSidebarToggle);
   });
 
-  const sidebarToggle = document.getElementById('sidebarToggle');
-  sidebarToggle?.addEventListener('click', () => {
-    toggleMobileDrawer(el.folderSidebar);
+  el.sidebarToggle?.addEventListener('click', () => {
+    toggleMobileDrawer(el.folderSidebar, el.sidebarToggle);
   });
 
   el.folderContent?.addEventListener('click', () => {
@@ -1216,7 +1366,7 @@ function setupEvents() {
   el.homeSections?.addEventListener('click', () => {
     if (isMobileLayout()) closeMobileDrawers();
   });
-  el.mobileDrawerScrim?.addEventListener('click', closeMobileDrawers);
+  el.mobileDrawerScrim?.addEventListener('click', () => closeMobileDrawers({ restoreTrigger: true }));
 
   // Search panel
   el.searchPanelInput.addEventListener('input', debounce(handleSearchInput, 60));
@@ -1228,7 +1378,7 @@ function setupEvents() {
   });
   el.settingsPanel.addEventListener('click', e => e.stopPropagation());
   el.searchPanel.addEventListener('click', e => e.stopPropagation());
-  window.addEventListener('resize', closeMobileDrawers);
+  window.addEventListener('resize', () => closeMobileDrawers());
 
   // Search result clicks (delegated)
   el.searchPanelResults.addEventListener('click', e => {
@@ -1245,8 +1395,10 @@ function setupKeyboard() {
     const isSettingsOpen = el.settingsPanelOverlay.style.display === 'flex';
 
     // / or Cmd+K to open search
-    if ((e.key === '/' && !isInputFocused()) ||
-        ((e.metaKey || e.ctrlKey) && e.key === 'k')) {
+    const isSearchShortcut =
+      (e.key === '/' && !isInputFocused()) ||
+      ((e.metaKey || e.ctrlKey) && e.key === 'k');
+    if (!isSettingsOpen && isSearchShortcut) {
       e.preventDefault();
       if (isSearchOpen) closeSearch();
       else openSearch();
@@ -1259,7 +1411,16 @@ function setupKeyboard() {
       return;
     }
 
+    if (isSettingsOpen && e.key === 'Tab') {
+      trapFocus(el.settingsPanel, e);
+      return;
+    }
+
     if (isSearchOpen) {
+      if (e.key === 'Tab') {
+        trapFocus(el.searchPanel, e);
+        return;
+      }
       switch (e.key) {
         case 'Escape':
           e.preventDefault();
@@ -1285,6 +1446,17 @@ function setupKeyboard() {
       }
       return;
     }
+
+    if (isDrawerOpen() && e.key === 'Escape') {
+      e.preventDefault();
+      closeMobileDrawers({ restoreTrigger: true });
+      return;
+    }
+
+    if (isDrawerOpen() && e.key === 'Tab') {
+      const openDrawer = el.homeSidebar.classList.contains('open') ? el.homeSidebar : el.folderSidebar;
+      trapFocus(openDrawer, e);
+    }
   });
 }
 
@@ -1303,6 +1475,7 @@ async function init() {
   applyTheme(settings.theme);
   setupEvents();
   setupKeyboard();
+  syncDrawerAccessibility();
   await loadBookmarks();
   showView('home');
 }

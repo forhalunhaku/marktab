@@ -13,7 +13,7 @@ MarkTab is a Chrome/Edge Manifest V3 new tab extension for browsing, searching, 
 ## Extension Rules
 
 - Maintain Manifest V3 compatibility.
-- Keep permissions minimal. Current permissions are `bookmarks`, `favicon`, `storage`, and `activeTab`.
+- Keep permissions minimal. Current permissions are `bookmarks`, `favicon`, `search`, `storage`, and `activeTab`.
 - Document every new permission in `README.md`, `PRIVACY_POLICY.md`, and `CHROME_STORE_SUBMISSION.md`.
 - Use `activeTab` only for user-triggered popup actions, especially adding the current page as a bookmark.
 - Keep scripts in external `.js` files. Do not add inline script blocks or inline event handlers.
@@ -29,13 +29,14 @@ MarkTab is a Chrome/Edge Manifest V3 new tab extension for browsing, searching, 
 
 ## Visual Language
 
-MarkTab follows the HALUNHAKU design system (see `./DESIGN_SYSTEM.md`):
+MarkTab uses the HALUNHAKU **Mist Blue productivity variant** (see `./DESIGN_SYSTEM.md`):
 
-- Single forest-green accent (`#2f6f4e`), no multi-color accent selector.
-- Serif headings (`Noto Serif SC`), sans body, mono for dates/numbers/clock.
-- White cards with 20-28px radius, 1px green-gray borders, soft green-tinted shadows.
-- No glassmorphism except search overlay backdrop and the Cloudflare landing-page header.
-- No decorative gradients in the extension runtime UI.
+- Use one blue accent family: `#5b6cff` / `#4f7cff` in light mode and `#7aa2ff` in dark mode. Do not add an accent-color selector or a second accent family.
+- Use serif headings (`Noto Serif SC`), sans body text, and mono dates, numbers, and clock values.
+- Use cool gray backgrounds, translucent white/slate surfaces, 18-32px radii, subtle cool borders, and restrained blue-gray shadows.
+- Glass blur is limited to the fixed sidebar panel and search overlay. Other cards and controls may be translucent but must not add `backdrop-filter`.
+- Decorative gradients are limited to the low-contrast ambient page background, brand/icon surfaces, and popup primary treatment. Do not add rainbow, high-contrast, or text gradients.
+- Keep responsive behavior aligned with the runtime contract: fixed sidebar above `1200px`; drawer navigation at `1200px` and below; compact mobile layout at `768px` and below.
 
 ## Privacy And Store Review
 

@@ -67,15 +67,50 @@ test('home content omits the duplicate folder grid while keeping the browse guid
   assert.match(js, /msg\('browseFolders'\)/);
 });
 
-test('mobile layout uses drawer navigation instead of stacking the full sidebar above content', () => {
-  assert.match(html, /id="homeSidebarToggle"/);
+test('tablet and mobile layouts use drawer navigation instead of stacking the full sidebar above content', () => {
+  assert.match(html, /id="homeSidebarToggle"[^>]*aria-controls="homeSidebar"[^>]*aria-expanded="false"/);
+  assert.match(html, /id="sidebarToggle"[^>]*aria-controls="folderSidebar"[^>]*aria-expanded="false"/);
   assert.match(html, /class="home-mobile-nav"/);
   assert.match(html, /id="mobileDrawerScrim"/);
-  assert.match(js, /function toggleMobileDrawer\(target\)/);
-  assert.match(js, /window\.innerWidth <= 768/);
-  assert.match(css, /@media \(max-width:\s*768px\)[\s\S]*?\.home-sidebar,\s*\.folder-sidebar\s*\{[^}]*position:\s*fixed;[^}]*transform:\s*translateX\(calc\(-100%\s*-\s*24px\)\)/s);
+  assert.match(js, /function toggleMobileDrawer\(target, trigger\)/);
+  assert.match(js, /window\.innerWidth <= 1200/);
+  assert.match(js, /function syncDrawerAccessibility\(\)/);
+  assert.match(js, /sidebar\.inert = drawerLayout && !open/);
+  assert.match(js, /el\.homeMain\.inert = homeOpen/);
+  assert.match(js, /toggle\.setAttribute\('aria-expanded', String\(open\)\)/);
+  assert.match(js, /isDrawerOpen\(\) && e\.key === 'Escape'/);
+  assert.match(js, /isDrawerOpen\(\) && e\.key === 'Tab'/);
+  assert.match(css, /@media \(max-width:\s*1200px\)[\s\S]*?\.home-sidebar,\s*\.folder-sidebar\s*\{[^}]*position:\s*fixed;[^}]*transform:\s*translateX\(calc\(-100%\s*-\s*24px\)\)/s);
+  assert.match(css, /@media \(max-width:\s*1200px\)[\s\S]*?\.home-sidebar-toggle,\s*\.sidebar-toggle\s*\{[^}]*display:\s*inline-flex/s);
   assert.match(css, /@media \(max-width:\s*768px\)[\s\S]*?\.home-mobile-nav\s*\{[^}]*display:\s*flex/s);
   assert.match(css, /body\.drawer-open \.mobile-drawer-scrim\s*\{[^}]*pointer-events:\s*auto/s);
+});
+
+test('dialogs manage focus and expose modal semantics', () => {
+  assert.match(html, /id="settingsPanel"[^>]*role="dialog"[^>]*aria-modal="true"/);
+  assert.match(html, /id="searchPanel"[^>]*role="dialog"[^>]*aria-modal="true"/);
+  assert.match(html, /id="mobileDrawerScrim"[^>]*aria-hidden="true"[^>]*tabindex="-1"/);
+  assert.match(js, /function trapFocus\(container, event\)/);
+  assert.match(js, /const returnFocus = resolveAccessibleReturnFocus\(searchReturnFocus\) \|\| el\.homeSearchInput/);
+  assert.match(js, /suppressSearchTriggerFocus = true/);
+  assert.match(js, /requestAnimationFrame\(\(\) => el\.settingsPanelClose\.focus\(\)\)/);
+  assert.match(js, /el\.homeView\.inert = modalOpen/);
+});
+
+test('responsive surfaces honor safe areas and reduced motion', () => {
+  assert.match(css, /top:\s*max\(14px,\s*env\(safe-area-inset-top\)\)/);
+  assert.match(css, /left:\s*max\(24px,\s*env\(safe-area-inset-left\)\)/);
+  assert.match(css, /@media \(prefers-reduced-motion:\s*reduce\)[\s\S]*?animation-duration:\s*0\.01ms\s*!important[\s\S]*?transition-duration:\s*0\.01ms\s*!important/s);
+  assert.match(js, /window\.matchMedia\('\(prefers-reduced-motion: reduce\)'\)\.matches/);
+  assert.match(js, /behavior:\s*getScrollBehavior\(\)/);
+});
+
+test('page backgrounds omit ambient glows and dark drawer toggles stay legible', () => {
+  assert.match(css, /body\s*\{[^}]*background:\s*linear-gradient\(180deg,\s*#f4f7fb/s);
+  assert.match(css, /:root\[data-theme="dark"\] body\s*\{[^}]*background:\s*linear-gradient\(180deg,\s*var\(--dark-bg\)/s);
+  assert.doesNotMatch(css, /body\s*\{[^}]*radial-gradient/s);
+  assert.match(css, /\.app-backdrop\s*\{[^}]*background:\s*none/s);
+  assert.match(css, /:root\[data-theme="dark"\] \.home-sidebar-toggle,\s*:root\[data-theme="dark"\] \.sidebar-toggle\s*\{[^}]*color:\s*var\(--dark-accent\);[^}]*background:\s*rgba\(15,\s*23,\s*42,\s*0\.78\);[^}]*border-color:\s*rgba\(148,\s*163,\s*184,\s*0\.18\);[^}]*box-shadow:\s*0 18px 48px rgba\(2,\s*6,\s*23,\s*0\.34\)/s);
 });
 
 test('folder view uses a constrained responsive grid and compact cards', () => {
