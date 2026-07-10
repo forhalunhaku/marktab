@@ -128,7 +128,7 @@ try {
 
 `npm run cws:auth` opens the browser for OAuth authorization. Sign in with the Google developer account that owns, or has publisher access to, the target Chrome Web Store item; this may be different from the account that owns the Google Cloud project. After the loopback callback completes, the helper pipes the returned refresh token directly to `gh secret set CWS_REFRESH_TOKEN` over standard input. It does not print or store the token locally. Never commit credentials or paste them into issues, pull requests, logs, or chat.
 
-For routine releases, follow [Automated releases (maintainers)](./README.md#automated-releases-maintainers). The pushed `vX.Y.Z` tag triggers deterministic packaging, a draft GitHub Release, and Chrome Web Store submission; the GitHub Release becomes public only after the store API accepts the submission.
+For routine releases, follow [Automated releases (maintainers)](./README.md#automated-releases-maintainers). The pushed `vX.Y.Z` tag triggers deterministic packaging, a draft GitHub Release, and Chrome Web Store plus Edge Add-ons submissions; the GitHub Release becomes public only after both store APIs accept their submissions.
 
 The publisher currently uses the Chrome Web Store Publish API V1. Google has deprecated V1 and documents support only through October 15, 2026, so migrate this workflow to V2 before that date.
 
@@ -136,7 +136,7 @@ The publisher currently uses the Chrome Web Store Publish API V1. Google has dep
 
 To retry a failed release, open **Actions → Release → Run workflow**, enter the existing `vX.Y.Z` tag, and run it. The workflow checks out that exact tag, rebuilds the deterministic ZIP, creates or reuses a draft release, and replaces any same-named ZIP asset. A failure after draft creation leaves the GitHub Release as a draft; failures during version checks, tests, validation, or packaging can occur before any release exists.
 
-If the final **Publish GitHub Release** step failed, first confirm in the Developer Dashboard that Chrome Web Store accepted the review submission. Then run the same tag again and enable `publish_github_release_only`. This recovery mode requires an existing draft, skips the Chrome Web Store upload and submission entirely, and retries only publishing the GitHub Release. Do not enable it when the store submission failed or remains ambiguous.
+If the final **Publish GitHub Release** step failed, first confirm in both developer dashboards that Chrome Web Store and Edge Add-ons accepted their review submissions. Then run the same tag again and enable `publish_github_release_only`. This recovery mode requires an existing draft, skips both store uploads and submissions entirely, and retries only publishing the GitHub Release. Do not enable it when either store submission failed or remains ambiguous.
 
 If the remote Chrome Web Store state is ambiguous, inspect the item in the Developer Dashboard before retrying. Never invent a replacement version or move the existing tag. Chrome Web Store review is asynchronous: monitor it manually in the Developer Dashboard and respond to review feedback there.
 

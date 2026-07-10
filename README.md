@@ -175,7 +175,7 @@ npm run package
 npm run inspect:zip
 ```
 
-生成的 zip 位于 `dist/marktab-2.0.4.zip`。请确认压缩包只包含运行所需的 `manifest.json`、HTML、CSS、JS、`_locales/` 和图标文件。Chrome Web Store 提交说明见 [CHROME_STORE_SUBMISSION.md](./CHROME_STORE_SUBMISSION.md)。
+生成的 zip 位于 `dist/marktab-2.0.4.zip`。请确认压缩包只包含运行所需的 `manifest.json`、HTML、CSS、JS、`_locales/` 和图标文件。商店提交说明见 [CHROME_STORE_SUBMISSION.md](./CHROME_STORE_SUBMISSION.md) 与 [EDGE_STORE_SUBMISSION.md](./EDGE_STORE_SUBMISSION.md)。
 
 ### Automated releases (maintainers)
 
@@ -195,7 +195,7 @@ git push origin HEAD
 git push origin v1.4.2
 ```
 
-The tag workflow rebuilds the deterministic ZIP, creates a draft GitHub Release, and submits the public Chrome Web Store item for review. It publishes the GitHub Release only after the Chrome Web Store API accepts the submission. Store review remains asynchronous and must be monitored manually in the Chrome Web Store Developer Dashboard.
+The tag workflow rebuilds the deterministic ZIP, creates a draft GitHub Release, and submits the Chrome Web Store and Microsoft Edge Add-ons items for review. It publishes the GitHub Release only after both store APIs accept their submissions. Store reviews remain asynchronous and must be monitored in both developer dashboards.
 
 ## Roadmap / 后续计划
 
@@ -203,7 +203,7 @@ The tag workflow rebuilds the deterministic ZIP, creates a draft GitHub Release,
 - 更多可预期的键盘操作。
 - 继续优化主题、强调色和深色模式细节。
 - 准备 Chrome Web Store 发布资料。
-- 评估 Edge Add-ons 支持与提交流程。
+- 持续维护 Chrome Web Store 与 Edge Add-ons 自动发布流程。
 
 ## License
 
