@@ -39,10 +39,11 @@
   --radius-pill: 999px;
   --sidebar-width: 280px;
   --content-max: 1440px;
-  --ease-out: ease-out;
-  --duration-fast: 180ms;
-  --duration-base: 180ms;
-  --duration-slow: 180ms;
+  --ease-out: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --duration-slow: 320ms;
   --serif: "Noto Serif SC", "Songti SC", "STSong", "Source Han Serif SC", Georgia, serif;
   --sans: "Geist", "Noto Sans SC", "PingFang SC", "Helvetica Neue", system-ui, sans-serif;
   --mono: "SFMono-Regular", "JetBrains Mono", "Menlo", "Consolas", monospace;
@@ -120,6 +121,7 @@ html[data-theme="dark"] {
 body {
   min-height: 100dvh;
   font-family: var(--sans);
+  font-optical-sizing: auto;
   color: var(--text);
   background: linear-gradient(180deg, #f4f7fb 0%, #f6f8fc 54%, #f3f6fb 100%);
   line-height: 1.5;
@@ -281,15 +283,15 @@ mark {
   gap: 18px;
   overflow: hidden;
   background: rgba(255, 255, 255, 0.78);
-  box-shadow: 0 24px 80px rgba(15, 23, 42, 0.08);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
+  box-shadow: 0 24px 80px rgba(15, 23, 42, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(24px) saturate(170%);
+  -webkit-backdrop-filter: blur(24px) saturate(170%);
 }
 
 :root[data-theme="dark"] .home-sidebar-panel {
   background: rgba(15, 23, 42, 0.76);
   border-color: rgba(148, 163, 184, 0.14);
-  box-shadow: var(--dark-shadow);
+  box-shadow: var(--dark-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 .home-sidebar-top,
@@ -501,6 +503,13 @@ mark {
   background: rgba(255, 255, 255, 0.62);
 }
 
+.home-nav-item:active,
+.sidebar-nav-item:active,
+.home-sidebar-folder:active {
+  transform: scale(0.98);
+  transition-duration: 80ms;
+}
+
 .home-sidebar-folder svg,
 .sidebar-folder-icon {
   color: var(--text-soft);
@@ -580,6 +589,7 @@ mark {
   margin-top: 0;
   font-size: 0.78rem;
   color: var(--text-muted);
+  letter-spacing: 0.01em;
 }
 
 .home-sidebar-actions,
@@ -675,6 +685,24 @@ mark {
   box-shadow: 0 6px 14px rgba(79, 124, 255, 0.05);
 }
 
+.home-sidebar-action:active,
+.folder-sidebar-footer-btn:active,
+.sidebar-toggle:active,
+.search-panel-clear:active,
+.settings-panel-close:active,
+.folder-tool-button:active {
+  transform: scale(0.94);
+  transition-duration: 80ms;
+}
+
+.theme-option:active,
+.settings-folder-toggle:active,
+.home-recent-view-all:active,
+.folder-card-pin:active {
+  transform: scale(0.96);
+  transition-duration: 80ms;
+}
+
 .home-main {
   min-width: 0;
   height: 100%;
@@ -705,6 +733,7 @@ mark {
   line-height: 0.96;
   letter-spacing: -0.06em;
   color: var(--text);
+  font-variant-numeric: tabular-nums;
 }
 
 .hero-meta {
@@ -852,6 +881,7 @@ mark {
   font-family: var(--mono);
   font-size: 0.73rem;
   color: var(--text-muted);
+  letter-spacing: 0.01em;
 }
 
 .hint-dot {
@@ -988,7 +1018,14 @@ mark {
 .folder-pill:hover {
   transform: translateY(-2px);
   border-color: rgba(79, 124, 255, 0.25);
-  box-shadow: 0 20px 48px rgba(15, 23, 42, 0.09);
+  box-shadow: 0 22px 48px rgba(15, 23, 42, 0.09), 0 10px 22px rgba(79, 124, 255, 0.07);
+}
+
+.home-card:active,
+.folder-card:active,
+.folder-pill:active {
+  transform: translateY(-1px) scale(0.985);
+  transition-duration: 80ms;
 }
 
 .home-card-placeholder {
@@ -1172,6 +1209,7 @@ mark {
   font-size: 0.78rem;
   font-family: var(--mono);
   font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
 }
 
 .recent-empty,
@@ -1694,8 +1732,8 @@ body.drawer-open .mobile-drawer-scrim {
 }
 
 .search-panel-overlay {
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px) saturate(150%);
+  -webkit-backdrop-filter: blur(4px) saturate(150%);
 }
 
 .search-open {
@@ -1708,8 +1746,21 @@ body.drawer-open .mobile-drawer-scrim {
   border-radius: 28px;
   border: 1px solid var(--line);
   background: var(--bg-elevated);
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--shadow-lg), inset 0 1px 0 rgba(255, 255, 255, 0.6);
   overscroll-behavior: contain;
+  transform-origin: top center;
+  animation: panelMaterialize var(--duration-slow) var(--ease-spring);
+}
+
+@keyframes panelMaterialize {
+  from {
+    opacity: 0;
+    transform: translateY(-14px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .settings-panel {
@@ -1935,6 +1986,10 @@ body.drawer-open .mobile-drawer-scrim {
   background: rgba(79, 124, 255, 0.08);
 }
 
+.search-result-item.selected {
+  box-shadow: inset 0 0 0 1px var(--accent-border);
+}
+
 .search-web-item {
   grid-template-columns: 20px minmax(0, 1fr);
 }
@@ -1978,7 +2033,19 @@ body.drawer-open .mobile-drawer-scrim {
   background: var(--bg-strong);
   color: var(--text);
   box-shadow: var(--shadow-sm);
-  transition: opacity 220ms var(--ease-out), transform 220ms var(--ease-out);
+  transition: opacity var(--duration-base) var(--ease-out), transform var(--duration-base) var(--ease-out);
+  animation: toastIn var(--duration-slow) var(--ease-spring);
+}
+
+@keyframes toastIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 /* Dark theme surfaces stay genuinely dark instead of reusing light glass. */
@@ -2232,7 +2299,7 @@ body.drawer-open .mobile-drawer-scrim {
     width: min(320px, calc(100vw - max(14px, env(safe-area-inset-left)) - max(14px, env(safe-area-inset-right))));
     max-width: calc(100vw - max(14px, env(safe-area-inset-left)) - max(14px, env(safe-area-inset-right)));
     transform: translateX(calc(-100% - 24px));
-    transition: transform 220ms var(--ease-out);
+    transition: transform var(--duration-slow) var(--ease-out);
     z-index: 60;
     pointer-events: none;
   }
@@ -2598,6 +2665,7 @@ body.popup-page::after {
   font-size: 0.82rem;
   line-height: 1.2;
   color: var(--text-muted);
+  letter-spacing: 0.01em;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -2650,6 +2718,11 @@ body.popup-page::after {
 
 .popup-page .popup-button:hover {
   transform: translateY(-1px);
+}
+
+.popup-page .popup-button:active {
+  transform: scale(0.97);
+  transition-duration: 80ms;
 }
 
 .popup-page .popup-button-primary {
@@ -2734,6 +2807,7 @@ body.popup-page::after {
   font-size: 0.77rem;
   line-height: 1.2;
   text-align: center;
+  letter-spacing: 0.01em;
 }
 
 .popup-page .popup-toast {

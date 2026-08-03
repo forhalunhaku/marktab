@@ -13,7 +13,7 @@
   · <code>Chrome Extension</code>
   · <code>Edge Compatible</code>
   · <code>MIT License</code>
-  · <code>v2.0.5</code>
+  · <code>v2.0.6</code>
 </p>
 
 ---
@@ -51,7 +51,7 @@ MarkTab 直接使用浏览器书签作为数据源，把 New Tab 变成一个轻
 | 文件夹视图 | 以侧边栏和网格卡片浏览浏览器书签文件夹。 |
 | 文件夹内搜索 | 在当前文件夹内快速过滤书签。 |
 | 键盘操作 | 支持搜索打开、结果导航、打开结果和关闭面板。 |
-| 主题外观 | Light、Dark、System 三种主题，森林绿单一强调色。 |
+| 主题外观 | Light、Dark、System 三种主题，雾蓝（Mist Blue）单一强调色。 |
 | 双语界面 | 使用 Chrome 原生 i18n，支持 English 和简体中文界面。 |
 | 本地优先 | 不依赖开发者云服务，不上传书签、文件夹或设置数据。 |
 
@@ -70,7 +70,7 @@ MarkTab 的界面目标是长期使用，而不是制造短暂的新鲜感。它
 
 ### 从 GitHub Release 安装
 
-1. 在 GitHub Releases 中下载最新的 `marktab-2.0.5.zip`。
+1. 在 GitHub Releases 中下载最新的 `marktab-2.0.6.zip`。
 2. 解压 zip 到一个固定的本地文件夹。
 3. 打开扩展管理页面：
    - Chrome: `chrome://extensions/`
@@ -137,11 +137,11 @@ npm install
 | 命令 | 用途 |
 | --- | --- |
 | `npm run validate` | 校验发布所需文件、权限、Manifest V3 约束和文档权限说明。 |
-| `npm run package` | 先执行校验，再生成 `dist/marktab-2.0.5.zip`。 |
+| `npm run package` | 先执行校验，再生成 `dist/marktab-2.0.6.zip`。 |
 | `npm run release:zip` | `npm run package` 的别名。 |
 | `npm run inspect:zip` | 查看当前 release zip 的文件列表。 |
 | `npm run screenshots` | 使用 Playwright 更新 `store-assets/` 中的截图资源。 |
-| `npm run bump -- 2.0.5` | 同步更新 `package.json`、`manifest.json`、README、提交说明和弹窗版本号。 |
+| `npm run bump -- 2.0.6` | 同步更新 `package.json`、`manifest.json`、README、提交说明和弹窗版本号。 |
 
 ## Project Structure / 项目结构
 
@@ -175,22 +175,22 @@ npm run package
 npm run inspect:zip
 ```
 
-生成的 zip 位于 `dist/marktab-2.0.5.zip`。请确认压缩包只包含运行所需的 `manifest.json`、HTML、CSS、JS、`_locales/` 和图标文件。商店提交说明见 [CHROME_STORE_SUBMISSION.md](./CHROME_STORE_SUBMISSION.md) 与 [EDGE_STORE_SUBMISSION.md](./EDGE_STORE_SUBMISSION.md)。
+生成的 zip 位于 `dist/marktab-2.0.6.zip`。请确认压缩包只包含运行所需的 `manifest.json`、HTML、CSS、JS、`_locales/` 和图标文件。商店提交说明见 [CHROME_STORE_SUBMISSION.md](./CHROME_STORE_SUBMISSION.md) 与 [EDGE_STORE_SUBMISSION.md](./EDGE_STORE_SUBMISSION.md)。
 
 ### Automated releases (maintainers)
 
 A pushed tag matching `vX.Y.Z` is the production release boundary. Before creating the tag, the version must already match in `package.json` and `manifest.json`; use the existing bump command to synchronize every version-bearing file.
 
-For example, release `1.4.2` from PowerShell with:
+For example, release `2.0.6` from PowerShell with:
 
 ```powershell
-npm run bump -- 2.0.5
+npm run bump -- 2.0.6
 npm test
 npm run validate
 npm run package
 git add -- package.json manifest.json README.md CHROME_STORE_SUBMISSION.md popup.html cloudflare/marktab-home-worker.js
-git commit -m "release: v1.4.2"
-git tag v1.4.2
+git commit -m "release: v2.0.6"
+git tag v2.0.6
 git push origin HEAD
 git push origin v1.4.2
 ```
@@ -202,7 +202,7 @@ The tag workflow rebuilds the deterministic ZIP, creates a draft GitHub Release,
 - 更好的书签组织方式，尤其是大量文件夹场景。
 - 更多可预期的键盘操作。
 - 继续优化主题、强调色和深色模式细节。
-- 准备 Chrome Web Store 发布资料。
+- 迁移 Chrome Web Store Publish API 到 V2（V1 将于 2026-10-15 弃用）。
 - 持续维护 Chrome Web Store 与 Edge Add-ons 自动发布流程。
 
 ## License

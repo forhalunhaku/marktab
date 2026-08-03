@@ -10,5 +10,8 @@ npm-debug.log*
 .wrangler/
 .worktrees/
 
+# Build output
+dist/
+
 # Throwaway design sketches
 sketches/
