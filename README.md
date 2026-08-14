@@ -192,7 +192,7 @@ git add -- package.json manifest.json README.md CHROME_STORE_SUBMISSION.md popup
 git commit -m "release: v2.0.6"
 git tag v2.0.6
 git push origin HEAD
-git push origin v1.4.2
+git push origin v2.0.6
 ```
 
 The tag workflow rebuilds the deterministic ZIP, creates a draft GitHub Release, and submits the Chrome Web Store and Microsoft Edge Add-ons items for review. It publishes the GitHub Release only after both store APIs accept their submissions. Store reviews remain asynchronous and must be monitored in both developer dashboards.
