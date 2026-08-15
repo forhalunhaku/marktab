@@ -73,7 +73,7 @@ Key features:
 | `bookmarks` | Required to read the user's bookmark tree, display bookmarks on the new tab page, count bookmarks/folders, and create a bookmark when the user clicks “添加当前页面”. |
 | `favicon` | Required to display bookmark favicons through Chrome's built-in favicon service. |
 | `search` | Required only when the user actively submits a web search from the new tab page. It uses Chrome's default search provider through the Chrome Search API. |
-| `storage` | Required to save user preferences such as hidden folder IDs, pinned bookmark URLs, selected theme, and folder navigation collapsed state. |
+| `storage` | Required to save user preferences such as hidden folder IDs, pinned bookmark URLs, selected theme, recent visit records, and sidebar collapsed state. |
 | `activeTab` | Required only when the user opens the popup and clicks “添加当前页面”; it allows the extension to read the active tab title and URL for bookmark creation. |
 
 ## Privacy Field Answers

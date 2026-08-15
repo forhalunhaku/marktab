@@ -1,4 +1,4 @@
-const FALLBACK_VERSION = '2.0.6';
+const FALLBACK_VERSION = '2.1.0';
 const GITHUB_REPO = 'https://github.com/halunhaku/marktab';
 const GITHUB_API_LATEST_RELEASE = 'https://api.github.com/repos/halunhaku/marktab/releases/latest';
 const FALLBACK_RELEASE_URL = `${GITHUB_REPO}/releases/tag/v${FALLBACK_VERSION}`;
@@ -710,7 +710,7 @@ function renderHtml(release) {
               </figure>
               <figure class="preview-small">
                 <img src="${screenshots.recent}" alt="Recent bookmarks in MarkTab" loading="lazy">
-                <figcaption class="shot-caption"><span>Recent items</span><span>Local history</span></figcaption>
+                <figcaption class="shot-caption"><span>Recent items</span><span>Recently opened</span></figcaption>
               </figure>
             </div>
             <figure class="preview-large">

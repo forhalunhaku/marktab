@@ -15,9 +15,11 @@ const DEFAULTS = {
   hiddenFolderIds: [],
   pinnedBookmarkUrls: [],
   recentUrls: [],
+  recentVisitTimes: {},
   theme: 'light',
   homeShowRecent: true,
-  homeRecentCount: 8
+  homeRecentCount: 6,
+  sidebarCollapsed: false
 };
 
 // ─── State ───────────────────────────────────────────────────
@@ -53,6 +55,12 @@ const FALLBACK_MESSAGES = {
   viewAll: '查看全部',
   recent: '最近访问',
   yesterday: '昨天',
+  justNow: '刚刚',
+  minutesAgo: '$1 分钟前',
+  hoursAgo: '$1 小时前',
+  daysAgo: '$1 天前',
+  collapseSidebar: '收起侧边栏',
+  expandSidebar: '展开侧边栏',
   home: '首页',
   folders: '文件夹',
   bookmarkCount: '$1 个书签',
@@ -115,6 +123,7 @@ const el = {
   homeStatsFolders:    $('homeStatsFolders'),
   homeSidebarSettingsBtn: $('homeSidebarSettingsBtn'),
   homeSidebarThemeBtn: $('homeSidebarThemeBtn'),
+  homeSidebarCollapseBtn: $('homeSidebarCollapseBtn'),
   folderSidebar:       $('folderSidebar'),
   sidebarToggle:       $('sidebarToggle'),
   sidebarNav:          $('sidebarNav'),
@@ -122,6 +131,7 @@ const el = {
   folderSidebarHomeBtn: $('folderSidebarHomeBtn'),
   folderSidebarSettingsBtn: $('folderSidebarSettingsBtn'),
   folderSidebarThemeBtn: $('folderSidebarThemeBtn'),
+  folderSidebarCollapseBtn: $('folderSidebarCollapseBtn'),
   folderSidebarFolderTotal: $('folderSidebarFolderTotal'),
   folderStatsBookmarks: $('folderStatsBookmarks'),
   folderStatsFolders: $('folderStatsFolders'),
@@ -359,6 +369,32 @@ function applyTheme(themeId) {
   }
 }
 
+// ─── Sidebar collapse ────────────────────────────────────────
+function applySidebarCollapsed(collapsed) {
+  document.documentElement.setAttribute(
+    'data-sidebar-collapsed',
+    collapsed ? 'true' : 'false'
+  );
+  updateSidebarCollapseButtons();
+}
+
+function updateSidebarCollapseButtons() {
+  const collapsed = Boolean(settings.sidebarCollapsed);
+  [el.homeSidebarCollapseBtn, el.folderSidebarCollapseBtn].forEach(btn => {
+    if (!btn) return;
+    const label = collapsed ? msg('expandSidebar') : msg('collapseSidebar');
+    btn.setAttribute('aria-label', label);
+    btn.setAttribute('title', label);
+    btn.setAttribute('aria-expanded', String(!collapsed));
+  });
+}
+
+function toggleSidebarCollapsed() {
+  settings.sidebarCollapsed = !settings.sidebarCollapsed;
+  saveSettingsSilent();
+  applySidebarCollapsed(settings.sidebarCollapsed);
+}
+
 // ─── Settings ────────────────────────────────────────────────
 async function loadSettings() {
   try {
@@ -468,34 +504,62 @@ function getPinnedBookmarks() {
   });
 }
 
-function getRecentBookmarks(count = 8) {
-  const recent = [];
-  const seen = new Set();
-  for (const url of settings.recentUrls) {
-    if (recent.length >= count) break;
-    const bm = allBookmarks.find(b => b.url === url);
-    if (bm && !seen.has(url)) { recent.push(bm); seen.add(url); }
+// ─── Recent visits (MarkTab-opened bookmarks, MRU) ─────────────
+function getRecentItems(count = 8) {
+  const bookmarksByUrl = new Map();
+  for (const b of allBookmarks) {
+    if (b.url && !bookmarksByUrl.has(b.url)) bookmarksByUrl.set(b.url, b);
   }
-  return recent;
+
+  const times = settings.recentVisitTimes || {};
+  const sources = settings.recentUrls
+    .map(url => ({ url, lastVisitTime: times[url] || 0 }))
+    .sort((a, b) => (b.lastVisitTime || 0) - (a.lastVisitTime || 0));
+
+  const result = [];
+  const seen = new Set();
+  for (const item of sources) {
+    if (result.length >= count) break;
+    if (!item.url || seen.has(item.url)) continue;
+    const bm = bookmarksByUrl.get(item.url);
+    if (!bm) continue; // drop stale URLs that are no longer bookmarked
+    seen.add(item.url);
+    result.push({ ...bm, lastVisitTime: item.lastVisitTime || 0 });
+  }
+  return result;
 }
 
 function trackVisit(url) {
   if (!url) return;
   settings.recentUrls = [url, ...settings.recentUrls.filter(u => u !== url)].slice(0, 50);
+  settings.recentVisitTimes = { ...(settings.recentVisitTimes || {}), [url]: Date.now() };
   saveSettingsSilent();
 }
 
 function searchBookmarks(query) {
   const q = query.toLowerCase().trim();
   if (!q) return { bookmarks: [], folders: [] };
-  const bmResults = allBookmarks.filter(b =>
-    (b.title && b.title.toLowerCase().includes(q)) ||
-    (b.url && b.url.toLowerCase().includes(q))
-  );
+
+  const scored = [];
+  for (const b of allBookmarks) {
+    const title = (b.title || '').toLowerCase();
+    const url = (b.url || '').toLowerCase();
+    const domain = getDomain(b.url || '').toLowerCase();
+    let score = -1;
+    if (title.includes(q)) score = title.startsWith(q) ? 3 : 2;
+    else if (domain.includes(q)) score = 1;
+    else if (url.includes(q)) score = 0;
+    if (score >= 0) scored.push({ b, score });
+  }
+  scored.sort((a, b) => b.score - a.score);
+
   const folderResults = getUserFolders(true).filter(f =>
     f.title.toLowerCase().includes(q)
   );
-  return { bookmarks: bmResults.slice(0, 12), folders: folderResults.slice(0, 6) };
+  return {
+    bookmarks: scored.map(s => s.b).slice(0, 12),
+    folders: folderResults.slice(0, 6)
+  };
 }
 
 async function loadBookmarks() {
@@ -620,7 +684,8 @@ function renderHomePinned() {
 
 function renderHomeRecent() {
   if (!settings.homeShowRecent) { el.homeRecentGrid.innerHTML = ''; return; }
-  const allRecent = getRecentBookmarks(settings.homeRecentCount);
+  const displayCount = Math.max(1, settings.homeRecentCount || 6);
+  const allRecent = getRecentItems(displayCount + 1);
   if (!allRecent.length) {
     el.homeRecentGrid.className = 'home-recent-list';
     el.homeRecentGrid.innerHTML = `
@@ -639,8 +704,8 @@ function renderHomeRecent() {
     if (existing) existing.remove();
     return;
   }
-  const showCount = Math.min(allRecent.length, 6);
-  const recent = allRecent.slice(0, showCount);
+  const hasMore = allRecent.length > displayCount;
+  const recent = allRecent.slice(0, displayCount);
 
   el.homeRecentGrid.className = 'home-recent-list';
   el.homeRecentGrid.innerHTML = `<div class="home-recent-surface">${recent.map(createRecentRow).join('')}</div>`;
@@ -650,14 +715,14 @@ function renderHomeRecent() {
   const header = section?.querySelector('.section-header');
   if (!header) return;
   const existing = header.querySelector('.home-recent-view-all');
-  if (allRecent.length > 4) {
+  if (hasMore) {
     if (!existing) {
       const btn = document.createElement('button');
       btn.className = 'home-recent-view-all';
       btn.textContent = msg('viewAll');
       btn.addEventListener('click', () => {
-        const recent20 = getRecentBookmarks(20);
-        openFolderViewForBookmarks(recent20, msg('recent'));
+        const recentFull = getRecentItems(50);
+        openFolderViewForBookmarks(recentFull, msg('recent'));
       });
       header.appendChild(btn);
     }
@@ -671,7 +736,7 @@ function createRecentRow(bookmark) {
   const title = bookmark.title || msg('untitled');
   const initial = title.charAt(0).toUpperCase();
   const faviconUrl = getFaviconUrl(bookmark.url, 32);
-  const timeLabel = formatRecentTime(bookmark.dateAdded);
+  const timeLabel = formatRecentTime(bookmark.lastVisitTime);
   return `
     <a class="home-recent-item" href="${escapeHtml(bookmark.url)}" data-url="${escapeHtml(bookmark.url)}" title="${escapeHtml(title)}">
       <div class="home-recent-favicon">
@@ -691,16 +756,29 @@ function formatRecentTime(timestamp) {
   if (!timestamp) return '';
   const date = new Date(timestamp);
   if (Number.isNaN(date.getTime())) return '';
-  const now = new Date();
-  const startToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-  const startDate = new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
-  const dayDiff = Math.round((startToday - startDate) / 86400000);
-  if (dayDiff === 0) {
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
-  }
+  const now = Date.now();
+  const diffMs = now - date.getTime();
+  if (diffMs < 0) return '';
+
+  const minutes = Math.floor(diffMs / 60000);
+  if (minutes < 1) return msg('justNow');
+  if (minutes < 60) return msg('minutesAgo', String(minutes));
+
+  const hours = Math.floor(minutes / 60);
+  const startToday = new Date();
+  startToday.setHours(0, 0, 0, 0);
+  const startDate = new Date(date);
+  startDate.setHours(0, 0, 0, 0);
+  const dayDiff = Math.round((startToday.getTime() - startDate.getTime()) / 86400000);
+
+  if (dayDiff === 0) return msg('hoursAgo', String(hours));
   if (dayDiff === 1) return msg('yesterday');
-  if (dayDiff > 1 && dayDiff < 7) return `${dayDiff}d`;
-  return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+  if (dayDiff > 1 && dayDiff < 7) return msg('daysAgo', String(dayDiff));
+
+  // Older than a week: keep the real date, localized as "M月D日" / "Mar 5".
+  const locale = getUiLocale().toLowerCase();
+  if (locale.startsWith('zh')) return `${date.getMonth() + 1}月${date.getDate()}日`;
+  return date.toLocaleDateString(getUiLocale(), { month: 'short', day: 'numeric' });
 }
 
 function afterRenderRecent() {
@@ -908,7 +986,7 @@ function setupSearchFavicons() {
 function filterFolderBookmarks(query) {
   const q = query.toLowerCase().trim();
   if (activeFolderId === '__recent') {
-    const bookmarks = getRecentBookmarks(100);
+    const bookmarks = getRecentItems(100);
     const filtered = q ? bookmarks.filter(b =>
       (b.title && b.title.toLowerCase().includes(q)) ||
       (b.url && b.url.toLowerCase().includes(q))
@@ -1315,6 +1393,8 @@ function setupEvents() {
   el.folderSidebarThemeBtn.addEventListener('click', cycleTheme);
   el.homeSidebarSettingsBtn.addEventListener('click', openSettingsPanel);
   el.folderSidebarSettingsBtn.addEventListener('click', openSettingsPanel);
+  el.homeSidebarCollapseBtn?.addEventListener('click', toggleSidebarCollapsed);
+  el.folderSidebarCollapseBtn?.addEventListener('click', toggleSidebarCollapsed);
 
   // Sidebar home button
   el.sidebarHomeBtn.addEventListener('click', returnHome);
@@ -1339,7 +1419,7 @@ function setupEvents() {
       const target = item.dataset.folderNav;
       if (target === 'recent') {
         activeFolderId = '__recent';
-        renderFolderContentForBookmarks(getRecentBookmarks(20), msg('recent'));
+        renderFolderContentForBookmarks(getRecentItems(50), msg('recent'));
         renderSidebar();
         closeMobileDrawers();
         return;
@@ -1394,11 +1474,15 @@ function setupKeyboard() {
     const isSearchOpen = el.searchPanel.style.display === 'flex';
     const isSettingsOpen = el.settingsPanelOverlay.style.display === 'flex';
 
-    // / or Cmd+K to open search
-    const isSearchShortcut =
-      (e.key === '/' && !isInputFocused()) ||
-      ((e.metaKey || e.ctrlKey) && e.key === 'k');
-    if (!isSettingsOpen && isSearchShortcut) {
+    // Ctrl/Cmd + K always focuses the search box; "/" toggles the panel.
+    if (!isSettingsOpen && (e.metaKey || e.ctrlKey) && e.key === 'k') {
+      e.preventDefault();
+      if (isSearchOpen) el.searchPanelInput.focus();
+      else openSearch();
+      return;
+    }
+
+    if (!isSettingsOpen && e.key === '/' && !isInputFocused()) {
       e.preventDefault();
       if (isSearchOpen) closeSearch();
       else openSearch();
@@ -1473,6 +1557,7 @@ async function init() {
 
   await loadSettings();
   applyTheme(settings.theme);
+  applySidebarCollapsed(settings.sidebarCollapsed);
   setupEvents();
   setupKeyboard();
   syncDrawerAccessibility();

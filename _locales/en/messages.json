@@ -159,7 +159,7 @@
     "message": "No recent bookmarks yet"
   },
   "recentEmptyDescription": {
-    "message": "Open a bookmark and your visit history will appear here"
+    "message": "Open a bookmark and it will appear here"
   },
   "viewAll": {
     "message": "View all"
@@ -169,6 +169,24 @@
   },
   "yesterday": {
     "message": "Yesterday"
+  },
+  "justNow": {
+    "message": "just now"
+  },
+  "minutesAgo": {
+    "message": "$1 min ago"
+  },
+  "hoursAgo": {
+    "message": "$1 hr ago"
+  },
+  "daysAgo": {
+    "message": "$1d ago"
+  },
+  "collapseSidebar": {
+    "message": "Collapse sidebar"
+  },
+  "expandSidebar": {
+    "message": "Expand sidebar"
   },
   "home": {
     "message": "Home"

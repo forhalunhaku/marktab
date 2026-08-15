@@ -170,6 +170,24 @@
   "yesterday": {
     "message": "昨天"
   },
+  "justNow": {
+    "message": "刚刚"
+  },
+  "minutesAgo": {
+    "message": "$1 分钟前"
+  },
+  "hoursAgo": {
+    "message": "$1 小时前"
+  },
+  "daysAgo": {
+    "message": "$1 天前"
+  },
+  "collapseSidebar": {
+    "message": "收起侧边栏"
+  },
+  "expandSidebar": {
+    "message": "展开侧边栏"
+  },
   "home": {
     "message": "首页"
   },

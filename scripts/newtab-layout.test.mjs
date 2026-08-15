@@ -33,14 +33,14 @@ test('only the shared sidebar folder list scrolls while the footer stays fixed',
 
 test('sidebar wrapper stays transparent while the panel owns the glass surface', () => {
   assert.match(css, /\.home-sidebar,\s*\.folder-sidebar\s*\{[^}]*overflow:\s*visible;[^}]*background:\s*transparent;[^}]*box-shadow:\s*none/s);
-  assert.match(css, /\.home-sidebar-panel\s*\{[^}]*border-radius:\s*32px;[^}]*border:\s*1px solid rgba\(15,\s*23,\s*42,\s*0\.08\);[^}]*background:\s*rgba\(255,\s*255,\s*255,\s*0\.78\);[^}]*box-shadow:\s*0 24px 80px rgba\(15,\s*23,\s*42,\s*0\.08\)/s);
+  assert.match(css, /\.home-sidebar-panel\s*\{[^}]*border-radius:\s*32px;[^}]*border:\s*1px solid rgba\(15,\s*23,\s*42,\s*0\.06\);[^}]*background:\s*rgba\(255,\s*255,\s*255,\s*0\.62\);[^}]*box-shadow:\s*0 20px 60px rgba\(15,\s*23,\s*42,\s*0\.06\)/s);
   assert.match(css, /\.home-sidebar-actions,[^}]*justify-content:\s*center;[^}]*gap:\s*12px/s);
   assert.match(css, /\.home-sidebar-action\s*\{[^}]*width:\s*42px;[^}]*height:\s*42px;[^}]*border-radius:\s*14px/s);
 });
 
-test('pinned layout supports a five-column desktop grid', () => {
-  assert.match(css, /\.home-pinned-grid\s*\{[^}]*minmax\(190px,\s*1fr\)/s);
-  assert.match(css, /repeat\(5,\s*minmax\(0,\s*1fr\)\)/s);
+test('pinned layout supports a dense multi-column desktop grid', () => {
+  assert.match(css, /\.home-pinned-grid\s*\{[^}]*repeat\(auto-fill,\s*minmax\(150px,\s*1fr\)\)/s);
+  assert.match(css, /@media \(max-width:\s*768px\)[\s\S]*?\.home-pinned-grid,[\s\S]*?repeat\(2,\s*minmax\(0,\s*1fr\)\)/);
 });
 
 test('guide cards only render when there are no pinned bookmarks', () => {
@@ -130,7 +130,7 @@ test('folder view uses a constrained responsive grid and compact cards', () => {
 test('dark theme uses dedicated dark surfaces and readable text tokens', () => {
   assert.match(css, /:root\[data-theme="dark"\]\s*\{[^}]*--dark-bg:\s*#080d16;[^}]*--dark-surface:\s*rgba\(15,\s*23,\s*42,\s*0\.72\);[^}]*--dark-text-primary:\s*#f8fafc;[^}]*--dark-border:\s*rgba\(148,\s*163,\s*184,\s*0\.16\)/s);
   assert.match(css, /:root\[data-theme="dark"\] \.folder-card,[\s\S]*?background:\s*var\(--dark-surface\);[^}]*border-color:\s*var\(--dark-border\)/s);
-  assert.match(css, /:root\[data-theme="dark"\] \.search-bar,[\s\S]*?background:\s*rgba\(15,\s*23,\s*42,\s*0\.78\);[^}]*border-color:\s*rgba\(148,\s*163,\s*184,\s*0\.18\)/s);
+  assert.match(css, /:root\[data-theme="dark"\] \.search-bar,[\s\S]*?background:\s*var\(--dark-surface-strong\);[^}]*border-color:\s*rgba\(148,\s*163,\s*184,\s*0\.22\)/s);
   assert.match(css, /:root\[data-theme="dark"\] \.home-sidebar-stats\s*\{[^}]*background:\s*var\(--dark-surface-muted\)/s);
   assert.match(css, /:root\[data-theme="dark"\] \.folder-view-toggle\s*\{[^}]*background:\s*var\(--dark-surface\)/s);
 });

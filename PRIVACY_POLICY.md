@@ -8,7 +8,7 @@ MarkTab 是一个用于在 Chrome 和 Microsoft Edge 新标签页展示、搜索
 
 MarkTab 会读取浏览器书签，用于在新标签页和弹出窗口中展示书签、文件夹数量、分类列表和搜索结果。
 
-MarkTab 会保存少量设置数据，包括隐藏的分类 ID、置顶书签 URL、最近通过 MarkTab 打开的书签 URL、主题和其他界面偏好。这些设置通过浏览器扩展存储保存，用于在同一浏览器或浏览器同步环境中保留用户偏好。
+MarkTab 会保存少量设置数据，包括隐藏的分类 ID、置顶书签 URL、通过 MarkTab 打开的书签 URL 及点击时间、侧边栏折叠状态、主题和其他界面偏好。这些设置通过浏览器扩展存储保存，用于在同一浏览器或浏览器同步环境中保留用户偏好。
 
 MarkTab 会使用浏览器内置 favicon 服务显示书签对应网站图标。图标加载失败时，界面会回退到首字母图标。
 
@@ -29,7 +29,7 @@ MarkTab 不加载或执行远程托管代码。扩展的 HTML、CSS、JavaScript
 - `bookmarks`：读取书签树、展示书签和文件夹，并在用户主动点击“添加当前页面”时创建书签。
 - `favicon`：使用浏览器内置 favicon 服务显示书签对应网站图标。
 - `search`：在用户主动提交网页搜索时，通过浏览器搜索 API 使用浏览器默认搜索引擎。
-- `storage`：保存用户设置，例如隐藏分类、置顶书签、最近访问记录和主题。
+- `storage`：保存用户设置，例如隐藏分类、置顶书签、最近访问记录、侧边栏折叠状态和主题。
 - `activeTab`：仅在用户点击扩展弹出窗口中的“添加当前页面”时读取当前标签页标题和 URL，用于创建书签。
 
 ## 联系方式
@@ -50,7 +50,7 @@ MarkTab is a browser extension for displaying, searching, and organizing local C
 
 MarkTab reads browser bookmarks to display bookmarks, folder counts, folder lists, and search results on the new tab page and extension popup.
 
-MarkTab saves a small amount of settings data, including hidden folder IDs, pinned bookmark URLs, recently opened bookmark URLs, theme, and other interface preferences. These settings are stored with browser extension storage so user preferences can persist in the same browser or browser sync environment.
+MarkTab saves a small amount of settings data, including hidden folder IDs, pinned bookmark URLs, bookmark URLs opened through MarkTab and their click times, sidebar collapsed state, theme, and other interface preferences. These settings are stored with browser extension storage so user preferences can persist in the same browser or browser sync environment.
 
 MarkTab uses the browser's built-in favicon service to display website icons for bookmarks. If an icon fails to load, the interface falls back to a letter icon.
 
@@ -71,7 +71,7 @@ MarkTab does not load or execute remotely hosted code. The extension's HTML, CSS
 - `bookmarks`: Reads the bookmark tree, displays bookmarks and folders, and creates bookmarks only when the user explicitly adds the current page.
 - `favicon`: Uses the browser's built-in favicon service to display bookmark icons.
 - `search`: Uses the browser's default search engine through the browser search API only when the user actively submits a web search.
-- `storage`: Saves user settings such as hidden folders, pinned bookmarks, recent visit records, and theme.
+- `storage`: Saves user settings such as hidden folders, pinned bookmarks, recent visit records, sidebar collapsed state, and theme.
 - `activeTab`: Reads the current tab only when the user clicks "Add current page" in the extension popup, so the extension can create a bookmark.
 
 ## Contact
