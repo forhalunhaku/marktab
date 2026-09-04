@@ -55,7 +55,7 @@ test('store secrets are confined to their respective steps', async () => {
   const githubStart = positionOf(workflow, '- name: Publish GitHub Release');
   const chromeStep = workflow.slice(chromeStart, edgeStart);
   const edgeStep = workflow.slice(edgeStart, githubStart);
-  for (const name of ['CWS_CLIENT_ID', 'CWS_CLIENT_SECRET', 'CWS_REFRESH_TOKEN', 'CWS_ITEM_ID']) {
+  for (const name of ['CWS_CLIENT_ID', 'CWS_CLIENT_SECRET', 'CWS_REFRESH_TOKEN', 'CWS_PUBLISHER_ID', 'CWS_ITEM_ID']) {
     assert.equal((workflow.match(new RegExp(`\\$\\{\\{ secrets\\.${name} \\}\\}`, 'g')) ?? []).length, 1);
     assert.match(chromeStep, new RegExp(`${name}: \\$\\{\\{ secrets\\.${name} \\}\\}`));
   }

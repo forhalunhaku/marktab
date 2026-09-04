@@ -1,7 +1,11 @@
 const TOKEN_URL = 'https://oauth2.googleapis.com/token';
-const STORE_API_ROOT = 'https://www.googleapis.com/chromewebstore/v1.1/items';
-const STORE_UPLOAD_ROOT = 'https://www.googleapis.com/upload/chromewebstore/v1.1/items';
+const STORE_API_ROOT = 'https://chromewebstore.googleapis.com/v2';
+const STORE_UPLOAD_ROOT = 'https://chromewebstore.googleapis.com/upload/v2';
 const DEFAULT_REQUEST_TIMEOUT_MS = 60_000;
+const SUCCESS_UPLOAD_STATES = new Set(['SUCCEEDED', 'SUCCESS']);
+const PENDING_UPLOAD_STATES = new Set(['IN_PROGRESS', 'UPLOAD_IN_PROGRESS']);
+const FAILED_UPLOAD_STATES = new Set(['FAILED', 'FAILURE', 'NOT_FOUND']);
+const ACCEPTED_PUBLISH_STATES = new Set(['PENDING_REVIEW', 'PUBLISHED']);
 
 function normalizedSecrets(secrets) {
   return [...new Set(secrets.filter(Boolean).map(String))].sort(
@@ -105,14 +109,13 @@ async function requestJson({
   }
 }
 
-function itemUrl(root, itemId, suffix = '') {
-  return `${root}/${encodeURIComponent(itemId)}${suffix}`;
+function itemUrl(root, publisherId, itemId, suffix = '') {
+  return `${root}/publishers/${encodeURIComponent(publisherId)}/items/${encodeURIComponent(itemId)}${suffix}`;
 }
 
 function apiHeaders(accessToken, extra = {}) {
   return {
     authorization: `Bearer ${accessToken}`,
-    'x-goog-api-version': '2',
     ...extra,
   };
 }
@@ -150,6 +153,7 @@ export async function exchangeRefreshToken({
 }
 
 export function uploadItem({
+  publisherId,
   itemId,
   accessToken,
   zipBytes,
@@ -159,9 +163,9 @@ export function uploadItem({
 }) {
   return requestJson({
     action: 'Upload item',
-    url: itemUrl(STORE_UPLOAD_ROOT, itemId, '?uploadType=media'),
+    url: itemUrl(STORE_UPLOAD_ROOT, publisherId, itemId, ':upload'),
     init: {
-      method: 'PUT',
+      method: 'POST',
       headers: apiHeaders(accessToken, { 'content-type': 'application/zip' }),
       body: zipBytes,
     },
@@ -173,6 +177,7 @@ export function uploadItem({
 }
 
 export function getItemStatus({
+  publisherId,
   itemId,
   accessToken,
   fetchImpl = fetch,
@@ -181,7 +186,7 @@ export function getItemStatus({
 }) {
   return requestJson({
     action: 'Get item status',
-    url: itemUrl(STORE_API_ROOT, itemId, '?projection=DRAFT'),
+    url: itemUrl(STORE_API_ROOT, publisherId, itemId, ':fetchStatus'),
     init: {
       method: 'GET',
       headers: apiHeaders(accessToken),
@@ -193,12 +198,19 @@ export function getItemStatus({
   });
 }
 
+function readUploadState(result) {
+  if (!result || typeof result !== 'object' || Array.isArray(result)) return undefined;
+  if (Object.hasOwn(result, 'uploadState')) return result.uploadState;
+  if (Object.hasOwn(result, 'lastAsyncUploadState')) return result.lastAsyncUploadState;
+  return undefined;
+}
+
 function inspectUploadState(result) {
-  const state = result?.uploadState;
+  const state = readUploadState(result);
   if (!state) throw new Error('Upload response has missing state');
-  if (state === 'SUCCESS') return 'success';
-  if (state === 'IN_PROGRESS') return 'pending';
-  if (state === 'FAILURE' || state === 'NOT_FOUND') {
+  if (SUCCESS_UPLOAD_STATES.has(state)) return 'success';
+  if (PENDING_UPLOAD_STATES.has(state)) return 'pending';
+  if (FAILED_UPLOAD_STATES.has(state)) {
     throw new Error(`Upload reached terminal state ${state}`);
   }
   throw new Error(`Upload response has unexpected state ${state}`);
@@ -224,13 +236,14 @@ function defaultSleep(milliseconds, { signal } = {}) {
 
 function publishOutcomeError(reason, data, accessToken) {
   const detail = redactJson(
-    { status: data?.status, statusDetail: data?.statusDetail },
+    { state: data?.state, warningInfo: data?.warningInfo },
     [accessToken],
   );
   return new Error(`Publish item failed: ${reason} ${JSON.stringify(detail)}`);
 }
 
 export async function waitForUpload({
+  publisherId,
   itemId,
   accessToken,
   initial,
@@ -249,6 +262,7 @@ export async function waitForUpload({
     await sleep(intervalMs, { signal });
     if (signal?.aborted) throw signal.reason;
     current = await getItemStatus({
+      publisherId,
       itemId,
       accessToken,
       fetchImpl,
@@ -262,6 +276,7 @@ export async function waitForUpload({
 }
 
 export async function publishItem({
+  publisherId,
   itemId,
   accessToken,
   fetchImpl = fetch,
@@ -270,11 +285,11 @@ export async function publishItem({
 }) {
   const data = await requestJson({
     action: 'Publish item',
-    url: itemUrl(STORE_API_ROOT, itemId, '/publish'),
+    url: itemUrl(STORE_API_ROOT, publisherId, itemId, ':publish'),
     init: {
       method: 'POST',
       headers: apiHeaders(accessToken, { 'content-type': 'application/json' }),
-      body: JSON.stringify({ target: 'default' }),
+      body: JSON.stringify({ publishType: 'DEFAULT_PUBLISH' }),
     },
     fetchImpl,
     secrets: [accessToken],
@@ -285,18 +300,14 @@ export async function publishItem({
   if (!data || typeof data !== 'object' || Array.isArray(data)) {
     throw publishOutcomeError('malformed response', data, accessToken);
   }
-  if (!Object.hasOwn(data, 'status')) {
-    throw publishOutcomeError('missing application status', data, accessToken);
+  if (!Object.hasOwn(data, 'state')) {
+    throw publishOutcomeError('missing submission state', data, accessToken);
   }
-  if (
-    !Array.isArray(data.status)
-    || data.status.length === 0
-    || data.status.some((status) => typeof status !== 'string')
-  ) {
-    throw publishOutcomeError('malformed application status', data, accessToken);
+  if (typeof data.state !== 'string' || data.state.length === 0) {
+    throw publishOutcomeError('malformed submission state', data, accessToken);
   }
-  if (data.status.some((status) => status !== 'OK')) {
-    throw publishOutcomeError('application status', data, accessToken);
+  if (!ACCEPTED_PUBLISH_STATES.has(data.state)) {
+    throw publishOutcomeError('submission state', data, accessToken);
   }
   return data;
 }

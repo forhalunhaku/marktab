@@ -7,6 +7,7 @@ const REQUIRED_ENV = [
   'CWS_CLIENT_ID',
   'CWS_CLIENT_SECRET',
   'CWS_REFRESH_TOKEN',
+  'CWS_PUBLISHER_ID',
   'CWS_ITEM_ID',
 ];
 
@@ -43,8 +44,20 @@ export async function publishPackage({
     throw new Error('timeoutMs must be a positive number.');
   }
 
-  const { CWS_CLIENT_ID, CWS_CLIENT_SECRET, CWS_REFRESH_TOKEN, CWS_ITEM_ID } = env;
-  const secrets = [CWS_CLIENT_ID, CWS_CLIENT_SECRET, CWS_REFRESH_TOKEN, CWS_ITEM_ID];
+  const {
+    CWS_CLIENT_ID,
+    CWS_CLIENT_SECRET,
+    CWS_REFRESH_TOKEN,
+    CWS_PUBLISHER_ID,
+    CWS_ITEM_ID,
+  } = env;
+  const secrets = [
+    CWS_CLIENT_ID,
+    CWS_CLIENT_SECRET,
+    CWS_REFRESH_TOKEN,
+    CWS_PUBLISHER_ID,
+    CWS_ITEM_ID,
+  ];
   let accessToken;
   const controller = new AbortController();
   let timer;
@@ -68,6 +81,7 @@ export async function publishPackage({
       log('Chrome Web Store authentication completed.');
 
       const initial = await api.uploadItem({
+        publisherId: CWS_PUBLISHER_ID,
         itemId: CWS_ITEM_ID,
         accessToken,
         zipBytes,
@@ -76,6 +90,7 @@ export async function publishPackage({
       log('Chrome Web Store upload started.');
 
       await api.waitForUpload({
+        publisherId: CWS_PUBLISHER_ID,
         itemId: CWS_ITEM_ID,
         accessToken,
         initial,
@@ -84,6 +99,7 @@ export async function publishPackage({
       log('Chrome Web Store upload completed.');
 
       const result = await api.publishItem({
+        publisherId: CWS_PUBLISHER_ID,
         itemId: CWS_ITEM_ID,
         accessToken,
         signal: controller.signal,

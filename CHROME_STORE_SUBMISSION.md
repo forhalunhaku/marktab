@@ -92,6 +92,7 @@ Key features:
 - In Google Cloud, enable the Chrome Web Store API, configure the OAuth consent screen, and create a **Desktop app** OAuth client. The helper uses that client with a temporary loopback callback on `127.0.0.1`.
 - If the OAuth consent app uses the **External** user type and remains in **Testing**, add the same Google developer account that will perform authorization—the item owner or an account with publisher access—as a Test user before authorizing.
 - Google limits refresh tokens to seven days for External consent apps in Testing when the `chromewebstore` scope is requested. For durable CI, move the consent app to **In production** before generating the final `CWS_REFRESH_TOKEN`. If Testing is intentional, rerun `npm run cws:auth` and rotate the GitHub secret before each seven-day expiry.
+- Find the publisher ID in the Chrome Web Store Developer Dashboard under **Publisher → Settings**. Store that value as `CWS_PUBLISHER_ID`; V2 API URLs require it in the path.
 - Find the extension's item ID in the Chrome Web Store Developer Dashboard or in its listing URL. Store that value as `CWS_ITEM_ID`; do not substitute an invented or example ID.
 - Rotate any client secret, refresh token, or other credential that has been exposed through an uncontrolled channel before configuring automation.
 
@@ -100,13 +101,15 @@ Configure these GitHub Actions secrets, with these exact names:
 - `CWS_CLIENT_ID`
 - `CWS_CLIENT_SECRET`
 - `CWS_REFRESH_TOKEN`
+- `CWS_PUBLISHER_ID`
 - `CWS_ITEM_ID`
 
-From PowerShell, let GitHub CLI prompt interactively for the three known values so they do not appear in shell history:
+From PowerShell, let GitHub CLI prompt interactively for the known values so they do not appear in shell history:
 
 ```powershell
 gh secret set CWS_CLIENT_ID
 gh secret set CWS_CLIENT_SECRET
+gh secret set CWS_PUBLISHER_ID
 gh secret set CWS_ITEM_ID
 ```
 
@@ -130,7 +133,7 @@ try {
 
 For routine releases, follow [Automated releases (maintainers)](./README.md#automated-releases-maintainers). The pushed `vX.Y.Z` tag triggers deterministic packaging, a draft GitHub Release, and Chrome Web Store plus Edge Add-ons submissions; the GitHub Release becomes public only after both store APIs accept their submissions.
 
-The publisher currently uses the Chrome Web Store Publish API V1. Google has deprecated V1 and documents support only through October 15, 2026, so migrate this workflow to V2 before that date.
+The publisher uses the Chrome Web Store API V2. Existing OAuth Desktop credentials and the `chromewebstore` refresh token remain valid; V2 additionally requires `CWS_PUBLISHER_ID` in every upload, status, and publish request. The workflow uploads a package, waits until the upload succeeds, then submits the item for public review with `DEFAULT_PUBLISH`.
 
 ### Retry and review operations
 

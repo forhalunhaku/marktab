@@ -12,6 +12,7 @@ const completeEnv = {
   CWS_CLIENT_ID: 'client-id-secret-value',
   CWS_CLIENT_SECRET: 'client-secret-value',
   CWS_REFRESH_TOKEN: 'refresh-token-value',
+  CWS_PUBLISHER_ID: 'publisher-id-value',
   CWS_ITEM_ID: 'item-id-value',
 };
 
@@ -31,7 +32,7 @@ function recordingApi(calls = []) {
     },
     async publishItem(input) {
       calls.push(['publishItem', input]);
-      return { status: ['OK'] };
+      return { state: 'PENDING_REVIEW' };
     },
   };
 }
@@ -41,6 +42,7 @@ test('validates required environment variables in order before artifact access',
     'CWS_CLIENT_ID',
     'CWS_CLIENT_SECRET',
     'CWS_REFRESH_TOKEN',
+    'CWS_PUBLISHER_ID',
     'CWS_ITEM_ID',
   ];
 
@@ -85,7 +87,7 @@ test('redacts every configured credential from an API failure before an access t
   t.after(() => rm(directory, { recursive: true, force: true }));
   const artifactPath = path.join(directory, 'marktab.zip');
   await writeFile(artifactPath, Buffer.from([0x50, 0x4b, 0x03, 0x04]));
-  const leakedMessage = `Token exchange rejected client ${completeEnv.CWS_CLIENT_ID}, secret ${completeEnv.CWS_CLIENT_SECRET}, refresh ${completeEnv.CWS_REFRESH_TOKEN}, item ${completeEnv.CWS_ITEM_ID}.`;
+  const leakedMessage = `Token exchange rejected client ${completeEnv.CWS_CLIENT_ID}, secret ${completeEnv.CWS_CLIENT_SECRET}, refresh ${completeEnv.CWS_REFRESH_TOKEN}, publisher ${completeEnv.CWS_PUBLISHER_ID}, item ${completeEnv.CWS_ITEM_ID}.`;
 
   await assert.rejects(
     publishPackage({
@@ -111,7 +113,7 @@ test('redacts the acquired access token and configured credentials from a later 
   const artifactPath = path.join(directory, 'marktab.zip');
   await writeFile(artifactPath, Buffer.from([0x50, 0x4b, 0x03, 0x04]));
   const accessToken = 'acquired-access-token-value';
-  const leakedMessage = `Upload failed after authentication for ${completeEnv.CWS_CLIENT_ID}, ${completeEnv.CWS_CLIENT_SECRET}, ${completeEnv.CWS_REFRESH_TOKEN}, ${completeEnv.CWS_ITEM_ID}; Authorization: Bearer ${accessToken}.`;
+  const leakedMessage = `Upload failed after authentication for ${completeEnv.CWS_CLIENT_ID}, ${completeEnv.CWS_CLIENT_SECRET}, ${completeEnv.CWS_REFRESH_TOKEN}, ${completeEnv.CWS_PUBLISHER_ID}, ${completeEnv.CWS_ITEM_ID}; Authorization: Bearer ${accessToken}.`;
 
   await assert.rejects(
     publishPackage({
@@ -156,7 +158,7 @@ test('exchanges, uploads, waits, and publishes in order with safe logs and retur
   const signal = calls[0][1].signal;
   assert.ok(signal instanceof AbortSignal);
   assert.equal(signal.aborted, false);
-  assert.deepEqual(result, { status: ['OK'] });
+  assert.deepEqual(result, { state: 'PENDING_REVIEW' });
   assert.deepEqual(calls, [
     ['exchangeRefreshToken', {
       clientId: completeEnv.CWS_CLIENT_ID,
@@ -165,18 +167,21 @@ test('exchanges, uploads, waits, and publishes in order with safe logs and retur
       signal,
     }],
     ['uploadItem', {
+      publisherId: completeEnv.CWS_PUBLISHER_ID,
       itemId: completeEnv.CWS_ITEM_ID,
       accessToken: 'access-token-value',
       zipBytes: expectedBytes,
       signal,
     }],
     ['waitForUpload', {
+      publisherId: completeEnv.CWS_PUBLISHER_ID,
       itemId: completeEnv.CWS_ITEM_ID,
       accessToken: 'access-token-value',
       initial: { uploadState: 'IN_PROGRESS' },
       signal,
     }],
     ['publishItem', {
+      publisherId: completeEnv.CWS_PUBLISHER_ID,
       itemId: completeEnv.CWS_ITEM_ID,
       accessToken: 'access-token-value',
       signal,

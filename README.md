@@ -202,7 +202,6 @@ The tag workflow rebuilds the deterministic ZIP, creates a draft GitHub Release,
 - 更好的书签组织方式，尤其是大量文件夹场景。
 - 更多可预期的键盘操作。
 - 继续优化主题、强调色和深色模式细节。
-- 迁移 Chrome Web Store Publish API 到 V2（V1 将于 2026-10-15 弃用）。
 - 持续维护 Chrome Web Store 与 Edge Add-ons 自动发布流程。
 
 ## License
