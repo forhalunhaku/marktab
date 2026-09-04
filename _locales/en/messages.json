@@ -131,6 +131,15 @@
   "startTypingToSearch": {
     "message": "Start typing to search"
   },
+  "noPinnedBookmarksYet": {
+    "message": "No pinned bookmarks yet"
+  },
+  "pinnedEmptyDescription": {
+    "message": "Pin from search or a folder and they will appear here"
+  },
+  "searchAndPin": {
+    "message": "Search and pin"
+  },
   "pinABookmark": {
     "message": "Pin a bookmark"
   },
@@ -156,10 +165,10 @@
     "message": "organize links"
   },
   "noRecentBookmarksYet": {
-    "message": "No recent bookmarks yet"
+    "message": "No recent visits yet"
   },
   "recentEmptyDescription": {
-    "message": "Open a bookmark and it will appear here"
+    "message": "Bookmarks you open in MarkTab will show up here"
   },
   "viewAll": {
     "message": "View all"

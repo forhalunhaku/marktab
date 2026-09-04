@@ -43,8 +43,14 @@ test('pinned layout supports a dense multi-column desktop grid', () => {
   assert.match(css, /@media \(max-width:\s*768px\)[\s\S]*?\.home-pinned-grid,[\s\S]*?repeat\(2,\s*minmax\(0,\s*1fr\)\)/);
 });
 
-test('guide cards only render when there are no pinned bookmarks', () => {
+test('pinned empty state is a compact search action instead of guide cards', () => {
   assert.match(js, /if \(pinned\.length === 0\)/);
+  assert.match(js, /createHomeEmptyState/);
+  assert.match(js, /msg\('searchAndPin'\)/);
+  assert.match(js, /data-home-empty-action="search"/);
+  assert.match(js, /openSearch\(event\.currentTarget\)/);
+  assert.doesNotMatch(js, /empty-pin-card/);
+  assert.doesNotMatch(js, /home-card-placeholder/);
   assert.doesNotMatch(js, /if \(pinned\.length < 4\)/);
 });
 
@@ -60,11 +66,22 @@ test('recent bookmarks render inside a single lightweight surface', () => {
   assert.match(css, /\.home-recent-item:hover\s*\{[^}]*rgba\(79,\s*124,\s*255,\s*0\.06\)/s);
 });
 
-test('home content omits the duplicate folder grid while keeping the browse guide', () => {
+test('home content omits the duplicate folder grid', () => {
   assert.doesNotMatch(html, /id="homeFoldersSection"/);
   assert.doesNotMatch(html, /id="homeFolderPills"/);
   assert.doesNotMatch(js, /renderHomeFolders/);
-  assert.match(js, /msg\('browseFolders'\)/);
+  assert.match(html, /data-i18n="browseFolders"/);
+});
+
+test('home empty states share a compact row with optional action', () => {
+  assert.match(css, /\.home-empty\s*\{[^}]*min-height:\s*104px/s);
+  assert.match(css, /\.home-pinned-grid\.is-empty\s*\{[^}]*display:\s*block/s);
+  assert.match(css, /\.home-empty-action\s*\{[^}]*border-radius:\s*18px/s);
+  assert.match(js, /noPinnedBookmarksYet/);
+  assert.match(js, /pinnedEmptyDescription/);
+  assert.match(js, /noRecentBookmarksYet/);
+  assert.match(js, /recentEmptyDescription/);
+  assert.doesNotMatch(js, /recent-empty/);
 });
 
 test('tablet and mobile layouts use drawer navigation instead of stacking the full sidebar above content', () => {
@@ -84,6 +101,13 @@ test('tablet and mobile layouts use drawer navigation instead of stacking the fu
   assert.match(css, /@media \(max-width:\s*1200px\)[\s\S]*?\.home-sidebar-toggle,\s*\.sidebar-toggle\s*\{[^}]*display:\s*inline-flex/s);
   assert.match(css, /@media \(max-width:\s*768px\)[\s\S]*?\.home-mobile-nav\s*\{[^}]*display:\s*flex/s);
   assert.match(css, /body\.drawer-open \.mobile-drawer-scrim\s*\{[^}]*pointer-events:\s*auto/s);
+});
+
+test('spotlight opens instantly without the settings panel materialize animation', () => {
+  assert.match(css, /\.settings-panel\s*\{[^}]*animation:\s*panelMaterialize/s);
+  assert.doesNotMatch(css, /\.search-panel\s*\{[^}]*animation:\s*panelMaterialize/s);
+  assert.match(css, /\.search-panel-empty\s*\{[^}]*min-height:\s*88px/s);
+  assert.match(js, /scrollIntoView\(\{ block: 'nearest', behavior: 'auto' \}\)/);
 });
 
 test('dialogs manage focus and expose modal semantics', () => {
@@ -111,6 +135,15 @@ test('page backgrounds omit ambient glows and dark drawer toggles stay legible',
   assert.doesNotMatch(css, /body\s*\{[^}]*radial-gradient/s);
   assert.match(css, /\.app-backdrop\s*\{[^}]*background:\s*none/s);
   assert.match(css, /:root\[data-theme="dark"\] \.home-sidebar-toggle,\s*:root\[data-theme="dark"\] \.sidebar-toggle\s*\{[^}]*color:\s*var\(--dark-accent\);[^}]*background:\s*rgba\(15,\s*23,\s*42,\s*0\.78\);[^}]*border-color:\s*rgba\(148,\s*163,\s*184,\s*0\.18\);[^}]*box-shadow:\s*0 18px 48px rgba\(2,\s*6,\s*23,\s*0\.34\)/s);
+});
+
+test('folder empty state is compact and view mode is bound once', () => {
+  const renderSidebar = js.slice(js.indexOf('function renderSidebar'), js.indexOf('function createSidebarFolderItem'));
+  const setupEvents = js.slice(js.indexOf('function setupEvents'), js.indexOf('function setupKeyboard'));
+  assert.doesNotMatch(renderSidebar, /data-folder-view-mode/);
+  assert.match(setupEvents, /data-folder-view-mode/);
+  assert.match(css, /\.folder-empty\s*\{[^}]*min-height:\s*104px/s);
+  assert.match(css, /\.folder-empty-icon\s*\{[^}]*width:\s*46px;[^}]*height:\s*46px/s);
 });
 
 test('folder view uses a constrained responsive grid and compact cards', () => {

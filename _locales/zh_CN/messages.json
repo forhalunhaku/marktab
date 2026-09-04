@@ -131,6 +131,15 @@
   "startTypingToSearch": {
     "message": "输入内容开始搜索"
   },
+  "noPinnedBookmarksYet": {
+    "message": "还没有固定书签"
+  },
+  "pinnedEmptyDescription": {
+    "message": "在搜索结果或文件夹里点固定，常用站点会出现在这里"
+  },
+  "searchAndPin": {
+    "message": "搜索并固定"
+  },
   "pinABookmark": {
     "message": "固定常用"
   },
@@ -156,10 +165,10 @@
     "message": "整理链接"
   },
   "noRecentBookmarksYet": {
-    "message": "暂无最近访问"
+    "message": "还没有最近访问"
   },
   "recentEmptyDescription": {
-    "message": "打开书签后，访问记录会显示在这里"
+    "message": "通过 MarkTab 打开书签后，记录会出现在这里"
   },
   "viewAll": {
     "message": "查看全部"

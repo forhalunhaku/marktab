@@ -698,6 +698,8 @@ mark {
 
 .theme-option:active,
 .settings-folder-toggle:active,
+.home-recent-view-all:active,
+.home-empty-action:active,
 .folder-card-pin:active {
   transform: scale(0.96);
   transition-duration: 80ms;
@@ -973,8 +975,11 @@ mark {
   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
 }
 
+.home-pinned-grid.is-empty {
+  display: block;
+}
+
 .home-card,
-.home-card-placeholder,
 .folder-card,
 .folder-pill,
 .home-recent-surface {
@@ -983,8 +988,7 @@ mark {
   box-shadow: var(--shadow-md);
 }
 
-.home-card,
-.home-card-placeholder {
+.home-card {
   min-height: 150px;
   border-radius: 18px;
   padding: 14px;
@@ -1014,42 +1018,6 @@ mark {
 .folder-pill:active {
   transform: translateY(-1px) scale(0.985);
   transition-duration: 80ms;
-}
-
-.home-card-placeholder {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  text-align: center;
-  border-style: dashed;
-  border-color: rgba(15, 23, 42, 0.12);
-  color: var(--text-muted);
-}
-
-.home-card-placeholder svg {
-  width: 42px;
-  height: 42px;
-  padding: 10px;
-  margin-bottom: 4px;
-  border-radius: 14px;
-  color: var(--accent-strong);
-  background: var(--surface-icon);
-  box-shadow: inset 0 0 0 1px rgba(79, 124, 255, 0.08);
-}
-
-.empty-pin-title {
-  font-size: 0.92rem;
-  font-weight: 600;
-  color: var(--text);
-}
-
-.empty-pin-meta {
-  font-size: 0.78rem;
-  color: var(--text-muted);
-  line-height: 1.45;
-  max-width: 170px;
 }
 
 .home-card-favicon,
@@ -1223,7 +1191,7 @@ mark {
   letter-spacing: 0.02em;
 }
 
-.recent-empty,
+.home-empty,
 .folder-empty {
   display: flex;
   align-items: center;
@@ -1236,14 +1204,15 @@ mark {
   box-shadow: var(--shadow-sm);
 }
 
-.recent-empty {
+.home-empty {
   min-height: 104px;
   justify-content: flex-start;
   gap: 16px;
+  padding: 20px 22px;
   text-align: left;
 }
 
-.recent-empty-icon {
+.home-empty-icon {
   width: 46px;
   height: 46px;
   flex: 0 0 auto;
@@ -1256,26 +1225,53 @@ mark {
   box-shadow: inset 0 0 0 1px rgba(79, 124, 255, 0.08);
 }
 
-.recent-empty-icon svg {
+.home-empty-icon svg {
   width: 22px;
   height: 22px;
 }
 
-.recent-empty-copy {
+.home-empty-copy {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  min-width: 0;
+  flex: 1;
 }
 
-.recent-empty-copy strong {
+.home-empty-copy strong {
   color: var(--text);
   font-size: 0.95rem;
   font-weight: 650;
 }
 
-.recent-empty-copy span {
+.home-empty-copy span {
   color: var(--text-muted);
   font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.home-empty-action {
+  margin-left: auto;
+  flex: 0 0 auto;
+  height: 36px;
+  padding: 0 16px;
+  border-radius: 18px;
+  background: var(--accent-surface);
+  border: 1px solid var(--accent-border);
+  color: var(--accent-strong);
+  font-size: 0.84rem;
+  font-weight: 600;
+  transition:
+    transform var(--duration-base) var(--ease-out),
+    background-color var(--duration-base) var(--ease-out),
+    color var(--duration-base) var(--ease-out),
+    border-color var(--duration-base) var(--ease-out);
+}
+
+.home-empty-action:hover {
+  transform: translateY(-1px);
+  background: rgba(79, 124, 255, 0.16);
+  border-color: rgba(79, 124, 255, 0.28);
 }
 
 .home-folder-pills {
@@ -1686,18 +1682,26 @@ mark {
   flex-direction: row;
   justify-content: flex-start;
   gap: 16px;
-  min-height: 220px;
+  min-height: 104px;
+  padding: 20px 22px;
 }
 
 .folder-empty-icon {
-  width: 56px;
-  height: 56px;
-  border-radius: 18px;
+  width: 46px;
+  height: 46px;
+  flex: 0 0 auto;
+  border-radius: 15px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   background: var(--surface-icon);
   color: var(--accent-strong);
+  box-shadow: inset 0 0 0 1px rgba(79, 124, 255, 0.08);
+}
+
+.folder-empty-icon svg {
+  width: 22px;
+  height: 22px;
 }
 
 .sidebar-toggle {
@@ -1760,6 +1764,9 @@ body.drawer-open .mobile-drawer-scrim {
   background: var(--bg-elevated);
   box-shadow: var(--shadow-lg), inset 0 1px 0 rgba(255, 255, 255, 0.6);
   overscroll-behavior: contain;
+}
+
+.settings-panel {
   transform-origin: top center;
   animation: panelMaterialize var(--duration-slow) var(--ease-spring);
 }
@@ -2017,13 +2024,25 @@ body.drawer-open .mobile-drawer-scrim {
 }
 
 .search-panel-empty {
-  min-height: 180px;
+  min-height: 88px;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 12px;
+  padding: 8px 16px 16px;
   color: var(--text-soft);
+}
+
+.search-panel-empty svg {
+  width: 22px;
+  height: 22px;
+  flex: 0 0 auto;
+}
+
+.search-panel-empty p {
+  margin: 0;
+  font-size: 0.88rem;
 }
 
 .toast-container {
@@ -2062,11 +2081,10 @@ body.drawer-open .mobile-drawer-scrim {
 
 /* Dark theme surfaces stay genuinely dark instead of reusing light glass. */
 :root[data-theme="dark"] .home-card,
-:root[data-theme="dark"] .home-card-placeholder,
 :root[data-theme="dark"] .folder-card,
 :root[data-theme="dark"] .folder-pill,
 :root[data-theme="dark"] .home-recent-surface,
-:root[data-theme="dark"] .recent-empty,
+:root[data-theme="dark"] .home-empty,
 :root[data-theme="dark"] .folder-empty {
   background: var(--dark-surface);
   border-color: var(--dark-border);
@@ -2085,8 +2103,7 @@ body.drawer-open .mobile-drawer-scrim {
 :root[data-theme="dark"] .folder-card-title,
 :root[data-theme="dark"] .home-recent-item-title,
 :root[data-theme="dark"] .folder-pill-title,
-:root[data-theme="dark"] .empty-pin-title,
-:root[data-theme="dark"] .recent-empty-copy strong,
+:root[data-theme="dark"] .home-empty-copy strong,
 :root[data-theme="dark"] .folder-empty-copy strong,
 :root[data-theme="dark"] .folder-title,
 :root[data-theme="dark"] .home-stat-value {
@@ -2098,8 +2115,7 @@ body.drawer-open .mobile-drawer-scrim {
 :root[data-theme="dark"] .home-recent-item-domain,
 :root[data-theme="dark"] .home-recent-time,
 :root[data-theme="dark"] .folder-pill-meta,
-:root[data-theme="dark"] .empty-pin-meta,
-:root[data-theme="dark"] .recent-empty-copy span,
+:root[data-theme="dark"] .home-empty-copy span,
 :root[data-theme="dark"] .folder-empty-copy span,
 :root[data-theme="dark"] .folder-count {
   color: var(--dark-text-muted);
@@ -2216,8 +2232,7 @@ body.drawer-open .mobile-drawer-scrim {
 :root[data-theme="dark"] .folder-card-favicon,
 :root[data-theme="dark"] .search-result-favicon,
 :root[data-theme="dark"] .search-result-folder-icon,
-:root[data-theme="dark"] .home-card-placeholder svg,
-:root[data-theme="dark"] .recent-empty-icon,
+:root[data-theme="dark"] .home-empty-icon,
 :root[data-theme="dark"] .folder-pill svg,
 :root[data-theme="dark"] .folder-empty-icon {
   background: rgba(122, 162, 255, 0.12);
@@ -2269,6 +2284,18 @@ body.drawer-open .mobile-drawer-scrim {
 
 :root[data-theme="dark"] .folder-header-area {
   border-color: var(--dark-border);
+}
+
+:root[data-theme="dark"] .home-empty-action {
+  background: var(--dark-accent-soft);
+  border-color: var(--dark-accent-border);
+  color: var(--dark-accent);
+}
+
+:root[data-theme="dark"] .home-empty-action:hover {
+  background: rgba(122, 162, 255, 0.22);
+  border-color: var(--dark-accent-border);
+  color: var(--dark-accent);
 }
 
 /* ── Collapsed sidebar (desktop only) ─────────────────────── */
@@ -2457,6 +2484,14 @@ body.drawer-open .mobile-drawer-scrim {
 
   .search-hint-badge {
     display: none;
+  }
+
+  .home-empty {
+    flex-wrap: wrap;
+  }
+
+  .home-empty-action {
+    margin-left: 62px;
   }
 
   .home-card-grid,
