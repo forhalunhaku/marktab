@@ -19,7 +19,8 @@ const DEFAULTS = {
   theme: 'light',
   homeShowRecent: true,
   homeRecentCount: 6,
-  sidebarCollapsed: false
+  sidebarCollapsed: false,
+  folderViewMode: 'grid'
 };
 
 // ─── State ───────────────────────────────────────────────────
@@ -391,6 +392,18 @@ function toggleSidebarCollapsed() {
   applySidebarCollapsed(settings.sidebarCollapsed);
 }
 
+function resolvedFolderViewMode(value = settings.folderViewMode) {
+  return value === 'list' ? 'list' : 'grid';
+}
+
+function applyFolderViewMode(mode = resolvedFolderViewMode()) {
+  const listMode = mode === 'list';
+  el.folderBookmarksGrid.classList.toggle('list-view', listMode);
+  document.querySelectorAll('[data-folder-view-mode]').forEach(item => {
+    item.classList.toggle('active', item.dataset.folderViewMode === mode);
+  });
+}
+
 // ─── Settings ────────────────────────────────────────────────
 async function loadSettings() {
   try {
@@ -410,6 +423,7 @@ async function loadSettings() {
       settings = { ...DEFAULTS };
     }
   } catch { settings = { ...DEFAULTS }; }
+  settings.folderViewMode = resolvedFolderViewMode(settings.folderViewMode);
 }
 
 async function saveSettingsSilent() {
@@ -1434,11 +1448,10 @@ function setupEvents() {
 
   document.querySelectorAll('[data-folder-view-mode]').forEach(button => {
     button.addEventListener('click', () => {
-      const listMode = button.dataset.folderViewMode === 'list';
-      el.folderBookmarksGrid.classList.toggle('list-view', listMode);
-      document.querySelectorAll('[data-folder-view-mode]').forEach(item => {
-        item.classList.toggle('active', item === button);
-      });
+      const mode = resolvedFolderViewMode(button.dataset.folderViewMode);
+      settings.folderViewMode = mode;
+      saveSettingsSilent();
+      applyFolderViewMode(mode);
     });
   });
 
@@ -1560,6 +1573,7 @@ async function init() {
   await loadSettings();
   applyTheme(settings.theme);
   applySidebarCollapsed(settings.sidebarCollapsed);
+  applyFolderViewMode();
   setupEvents();
   setupKeyboard();
   syncDrawerAccessibility();

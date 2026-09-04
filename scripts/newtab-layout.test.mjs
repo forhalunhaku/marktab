@@ -146,6 +146,17 @@ test('folder empty state is compact and view mode is bound once', () => {
   assert.match(css, /\.folder-empty-icon\s*\{[^}]*width:\s*46px;[^}]*height:\s*46px/s);
 });
 
+test('folder grid and list mode persist in local settings', () => {
+  const setupEvents = js.slice(js.indexOf('function setupEvents'), js.indexOf('function setupKeyboard'));
+  assert.match(js, /folderViewMode:\s*'grid'/);
+  assert.match(js, /function applyFolderViewMode/);
+  assert.match(js, /settings\.folderViewMode = resolvedFolderViewMode/);
+  assert.match(setupEvents, /settings\.folderViewMode = mode/);
+  assert.match(setupEvents, /saveSettingsSilent\(\)/);
+  assert.match(setupEvents, /applyFolderViewMode\(mode\)/);
+  assert.match(js, /applyFolderViewMode\(\)/);
+});
+
 test('folder view uses a constrained responsive grid and compact cards', () => {
   assert.match(css, /\.folder-content-inner\s*\{[^}]*width:\s*min\(100%,\s*var\(--content-max\)\)/s);
   assert.match(css, /\.folder-bookmarks-grid\s*\{[^}]*repeat\(auto-fill,\s*minmax\(180px,\s*1fr\)\)[^}]*gap:\s*16px/s);
